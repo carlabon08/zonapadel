@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="ZonaPadel">
+  <defs>
+    <linearGradient id="zp192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d8f5f"/>
+      <stop offset="100%" stop-color="#0d6945"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="44" fill="url(#zp192)"/>
+  <path d="M46 54h100v18l-76 50h76v18H46v-18l76-50H46z" fill="#fffdf9"/>
+  <circle cx="150" cy="42" r="14" fill="#d9b57d"/>
+</svg>

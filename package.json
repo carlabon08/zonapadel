@@ -1,0 +1,16 @@
+{
+  "name": "zonapadel",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace @zonapadel/server\" \"npm run dev --workspace @zonapadel/web\"",
+    "build": "npm run build --workspace @zonapadel/web",
+    "start": "npm run start --workspace @zonapadel/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
