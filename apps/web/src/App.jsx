@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 const navItems = ['Inicio', 'Buscar', 'Canchas', 'Entrenamiento', 'Torneos', 'Perfil'];
 const clubNavItems = ['Inicio', 'Canchas', 'Reservas', 'Perfil'];
-const trainerNavItems = ['Inicio', 'Clases', 'Canchas', 'Calendario', 'Perfil'];
+const trainerNavItems = ['Inicio', 'Clases', 'Canchas', 'Reservas', 'Perfil'];
 const tournamentNavItems = ['Inicio', 'Torneos', 'Canchas', 'Inscripciones', 'Perfil'];
 
 const navIcons = {
@@ -118,11 +118,20 @@ const coaches = [
   { id: 3, name: 'Diego Vera', specialty: 'Táctica defensiva', rating: '4.7', price: '$11.500', availability: 'Viernes 19:00' },
 ];
 
-const trainerClasses = [
-  { id: 1, title: 'Clases de drive', coach: 'Martín Ruiz', court: 'Cancha 2', time: 'Hoy · 18:00', students: 6, status: 'Disponible' },
-  { id: 2, title: 'Volea y red', coach: 'Sofía Costa', court: 'Cancha 1', time: 'Mañana · 17:30', students: 4, status: 'Queda 1 plaza' },
-  { id: 3, title: 'Táctica defensiva', coach: 'Diego Vera', court: 'Cancha 3', time: 'Viernes · 19:00', students: 5, status: 'Disponible' },
-];
+const trainerClassesByClub = {
+  'club-padel-norte': [
+    { id: 1, title: 'Clases de drive', court: 'Cancha 1', time: 'Hoy · 18:00', students: 6, status: 'Disponible' },
+    { id: 2, title: 'Volea y red', court: 'Cancha 2', time: 'Mañana · 17:30', students: 4, status: 'Queda 1 plaza' },
+  ],
+  'padel-arena': [
+    { id: 1, title: 'Táctica defensiva', court: 'Cancha 1', time: 'Hoy · 19:00', students: 5, status: 'Disponible' },
+    { id: 2, title: 'Saque y remate', court: 'Cancha 2', time: 'Jueves · 18:30', students: 3, status: 'Queda 2 plazas' },
+  ],
+  'sunset-club': [
+    { id: 1, title: 'Iniciación pádel', court: 'Cancha 1', time: 'Mañana · 17:00', students: 8, status: 'Completo' },
+    { id: 2, title: 'Perfeccionamiento', court: 'Cancha 3', time: 'Viernes · 20:00', students: 4, status: 'Disponible' },
+  ],
+};
 
 const tournamentEvents = [
   { id: 1, name: 'Copa Funes', date: '12 Sep', court: 'Cancha 1', teams: 8, status: 'Abierta', budget: '$180.000' },
@@ -238,6 +247,37 @@ const clubBookingsByClub = {
   ],
 };
 
+const trainerBookingsByClub = {
+  'club-padel-norte': [
+    { id: 1, court: 'Cancha 1', time: 'Hoy · 18:00', status: 'Confirmada', note: 'Clase de drive' },
+    { id: 2, court: 'Cancha 2', time: 'Mañana · 17:30', status: 'Pendiente', note: 'Clase de volea' },
+  ],
+  'padel-arena': [
+    { id: 1, court: 'Cancha 1', time: 'Hoy · 19:00', status: 'Confirmada', note: 'Clase táctica' },
+    { id: 2, court: 'Cancha 2', time: 'Jueves · 18:30', status: 'Pendiente', note: 'Entrenamiento individual' },
+  ],
+  'sunset-club': [
+    { id: 1, court: 'Cancha 1', time: 'Mañana · 17:00', status: 'Confirmada', note: 'Clase de iniciación' },
+    { id: 2, court: 'Cancha 3', time: 'Viernes · 20:00', status: 'Cancelada', note: 'Perfeccionamiento' },
+  ],
+};
+
+const clubCourtsByClub = {
+  'club-padel-norte': [
+    { id: 1, name: 'Cancha 1', price: '$18.000/h', surface: 'Pista rápida', slots: ['18:00', '19:00', '20:00'], status: 'Abierta', openingHours: '08:00 - 23:00' },
+    { id: 2, name: 'Cancha 2', price: '$22.000/h', surface: 'Pista de vidrio', slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', openingHours: '12:00 - 22:00' },
+    { id: 3, name: 'Cancha 3', price: '$25.000/h', surface: 'Interior climatizada', slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', openingHours: 'Sin horario activo' },
+  ],
+  'padel-arena': [
+    { id: 1, name: 'Cancha 1', price: '$20.000/h', surface: 'Pista exterior', slots: ['17:00', '19:00', '20:00'], status: 'Abierta', openingHours: '09:00 - 23:00' },
+    { id: 2, name: 'Cancha 2', price: '$24.000/h', surface: 'Pista de vidrio', slots: ['18:00', '19:30', '21:00'], status: 'Abierta', openingHours: '10:00 - 22:30' },
+  ],
+  'sunset-club': [
+    { id: 1, name: 'Cancha 1', price: '$19.000/h', surface: 'Arena premium', slots: ['16:30', '18:00', '19:00'], status: 'Abierta', openingHours: '08:00 - 22:00' },
+    { id: 2, name: 'Cancha 3', price: '$26.000/h', surface: 'Interior climatizada', slots: ['17:00', '18:30', '20:00'], status: 'Semicerrada', openingHours: '11:00 - 21:00' },
+  ],
+};
+
 const userThemes = [
   { id: 'rosa', label: 'Rosa', accent: '#f5d5df', accentAlt: '#f9d3df' },
   { id: 'celeste', label: 'Celeste', accent: '#dfeef9', accentAlt: '#cfe9ff' },
@@ -278,6 +318,10 @@ function App() {
   const trainerActiveClub = clubs.find((club) => club.id === selectedClubId) || trainerAvailableClubs[0] || clubs[0];
   const currentLocationLabel = userLocation.label || 'Funes, Santa Fe, Argentina';
   const selectedClubBookings = clubBookingsByClub[selectedClubId] || clubBookingsByClub['club-padel-norte'];
+  const trainerActiveClubId = trainerActiveClub?.id;
+  const trainerClubCourts = clubCourtsByClub[trainerActiveClubId] || clubCourtsByClub['club-padel-norte'];
+  const trainerClubClasses = trainerClassesByClub[trainerActiveClubId] || trainerClassesByClub['club-padel-norte'];
+  const trainerClubBookings = trainerBookingsByClub[trainerActiveClubId] || trainerBookingsByClub['club-padel-norte'];
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -942,6 +986,25 @@ function App() {
 
   const renderTrainerContent = () => {
     const trainerClubOptions = trainerAvailableClubs.length ? trainerAvailableClubs : clubs;
+    const activeTrainerCourt = trainerClubCourts.find((court) => court.id === selectedCourt.id) || trainerClubCourts[0];
+
+    const trainerClubSwitcher = (
+      <div className="club-selector-row">
+        {trainerClubOptions.map((club) => {
+          const active = trainerActiveClubId === club.id;
+          return (
+            <button
+              key={club.id}
+              type="button"
+              className={active ? 'club-tag active' : 'club-tag'}
+              onClick={() => setSelectedClubId(club.id)}
+            >
+              {active ? '✓ ' : ''}{club.name}
+            </button>
+          );
+        })}
+      </div>
+    );
 
     switch (activeTab) {
       case 'Clases':
@@ -949,19 +1012,47 @@ function App() {
           <div className="tab-content">
             <section className="panel">
               <div className="section-header">
-                <h3>Clases programadas</h3>
+                <h3>Clases programadas · {trainerActiveClub.name}</h3>
                 <button type="button" className="link-btn">Ver calendario</button>
               </div>
 
+              {trainerClubSwitcher}
+
               <div className="booking-list">
-                {trainerClasses.map((session) => (
+                {trainerClubClasses.map((session) => (
                   <div key={session.id} className="booking-row">
                     <div>
                       <strong>{session.title}</strong>
-                      <p>{session.coach} · {session.court}</p>
+                      <p>{session.court} · {session.students} alumnos</p>
                     </div>
                     <span>{session.time}</span>
                     <span className="booking-status confirmada">{session.status}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        );
+      case 'Reservas':
+        return (
+          <div className="tab-content">
+            <section className="panel">
+              <div className="section-header">
+                <h3>Mis reservas · {trainerActiveClub.name}</h3>
+                <button type="button" className="link-btn">Exportar</button>
+              </div>
+
+              {trainerClubSwitcher}
+
+              <div className="booking-list">
+                {trainerClubBookings.map((booking) => (
+                  <div key={booking.id} className="booking-row">
+                    <div>
+                      <strong>{booking.note}</strong>
+                      <p>{booking.court}</p>
+                    </div>
+                    <span>{booking.time}</span>
+                    <span className={`booking-status ${booking.status.toLowerCase()}`}>{booking.status}</span>
                   </div>
                 ))}
               </div>
@@ -979,25 +1070,14 @@ function App() {
                 <button type="button" className="link-btn">Disponibilidad</button>
               </div>
 
-              <div className="club-selector-row">
-                {trainerClubOptions.map((club) => (
-                  <button
-                    key={club.id}
-                    type="button"
-                    className={selectedClubId === club.id ? 'club-tag active' : 'club-tag'}
-                    onClick={() => setSelectedClubId(club.id)}
-                  >
-                    {club.name}
-                  </button>
-                ))}
-              </div>
+              {trainerClubSwitcher}
 
               <div className="court-list">
-                {courtStates.map((court) => (
+                {trainerClubCourts.map((court) => (
                   <button
                     key={court.id}
                     type="button"
-                    className={selectedCourt.id === court.id ? 'court-card active' : 'court-card'}
+                    className={activeTrainerCourt.id === court.id ? 'court-card active' : 'court-card'}
                     onClick={() => setSelectedCourt(court)}
                   >
                     <div className="court-top">
@@ -1030,8 +1110,8 @@ function App() {
                 <div className="club-logo">ZP</div>
                 <div>
                   <strong>{trainerActiveClub.name}</strong>
-                  <p>{selectedCourt.name} · {selectedCourt.surface}</p>
-                  <small>{selectedCourt.price} · 18:00 / 19:00</small>
+                  <p>{activeTrainerCourt.name} · {activeTrainerCourt.surface}</p>
+                  <small>{activeTrainerCourt.price} · 18:00 / 19:00</small>
                 </div>
               </div>
 
@@ -1375,6 +1455,11 @@ function App() {
                       <span>{club.city}</span>
                       <small>{club.address}</small>
                     </div>
+                    {isTrainerClubSelector ? (
+                      <span className={selected ? 'club-select-check checked' : 'club-select-check'} aria-hidden="true">
+                        {selected ? '✓' : ''}
+                      </span>
+                    ) : null}
                   </button>
                 );
               })}

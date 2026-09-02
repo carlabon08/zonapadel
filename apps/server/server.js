@@ -1,6 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './src/routes/auth.routes.js';
+import clubesRoutes from './src/routes/clubes.routes.js';
+import canchasRoutes from './src/routes/canchas.routes.js';
+import reservasRoutes from './src/routes/reservas.routes.js';
+import clasesRoutes from './src/routes/clases.routes.js';
 
 dotenv.config();
 
@@ -10,59 +15,22 @@ const port = process.env.PORT || 3003;
 app.use(cors());
 app.use(express.json());
 
-const courts = [
-  { id: 1, name: 'Cancha 1', surface: 'Césped artificial', price: 18 },
-  { id: 2, name: 'Cancha 2', surface: 'Pista rápida', price: 20 },
-  { id: 3, name: 'Cancha 3', surface: 'Interior climatizada', price: 24 },
-];
-
-const reservations = [
-  { id: 1, courtId: 1, date: '2026-08-30', time: '19:00', playerName: 'Luis' },
-  { id: 2, courtId: 2, date: '2026-08-30', time: '18:00', playerName: 'Ana' },
-];
-
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', app: 'ZonaPadel API' });
 });
 
-app.get('/api/canchas', (req, res) => {
-  res.json(courts);
-});
+app.use('/api/auth', authRoutes);
+app.use('/api/clubes', clubesRoutes);
+app.use('/api/canchas', canchasRoutes);
+app.use('/api/reservas', reservasRoutes);
+app.use('/api/clases', clasesRoutes);
 
-app.get('/api/reservas', (req, res) => {
-  res.json(reservations);
-});
-
-app.post('/api/reservas', (req, res) => {
-  const { courtId, date, time, playerName } = req.body;
-
-  if (!courtId || !date || !time || !playerName) {
-    return res.status(400).json({ message: 'Faltan datos para crear la reserva' });
-  }
-
-  const exists = reservations.some(
-    (reservation) =>
-      reservation.courtId === Number(courtId) &&
-      reservation.date === date &&
-      reservation.time === time
-  );
-
-  if (exists) {
-    return res.status(409).json({ message: 'Ese horario ya está reservado' });
-  }
-
-  const reservation = {
-    id: Date.now(),
-    courtId: Number(courtId),
-    date,
-    time,
-    playerName,
-  };
-
-  reservations.push(reservation);
-  return res.status(201).json({ message: 'Reserva creada', reservation });
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: 'Error interno del servidor' });
 });
 
 app.listen(port, () => {
   console.log(`Servidor ZonaPadel escuchando en http://localhost:${port}`);
 });
+

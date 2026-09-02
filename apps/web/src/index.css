@@ -174,7 +174,7 @@ h3 {
 
 .club-select-card {
   display: grid;
-  grid-template-columns: 84px 1fr;
+  grid-template-columns: 84px 1fr auto;
   align-items: center;
   gap: 14px;
   width: 100%;
@@ -183,6 +183,24 @@ h3 {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.08);
   padding: 10px 12px;
+  color: #fff;
+}
+
+.club-select-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  color: transparent;
+}
+
+.club-select-check.checked {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  border-color: transparent;
   color: #fff;
 }
 
