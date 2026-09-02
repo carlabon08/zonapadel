@@ -64,6 +64,98 @@ sequenceDiagram
 	API-->>A: Datos filtrados del club activo
 ```
 
+### Flujo del jugador
+
+```mermaid
+sequenceDiagram
+	participant J as Jugador
+	participant A as App movil
+	participant API as API Express
+	participant DB as MySQL
+
+	J->>A: Se registra o inicia sesion
+	A->>API: POST /api/auth/registro o /api/auth/login
+	API->>DB: Crea o valida usuario
+	DB-->>API: Usuario y credenciales validas
+	API-->>A: JWT
+	J->>A: Elige un club y consulta canchas
+	A->>API: GET /api/clubes y GET /api/canchas?club_id=...
+	API->>DB: Busca clubes y disponibilidad
+	DB-->>API: Canchas y horarios
+	API-->>A: Muestra opciones disponibles
+	J->>A: Selecciona fecha, hora y cancha
+	A->>API: POST /api/reservas con JWT
+	API->>DB: Comprueba conflicto y guarda reserva
+	DB-->>API: Reserva confirmada o conflicto
+	API-->>A: Resultado de la reserva
+```
+
+El jugador puede consultar sus reservas, cancelar una reserva según las reglas del negocio y descubrir clases o partidos disponibles. La comprobación de disponibilidad ocurre en la API para evitar reservas duplicadas desde distintos celulares.
+
+### Flujo del club
+
+```mermaid
+sequenceDiagram
+	participant C as Usuario del club
+	participant A as App movil
+	participant API as API Express
+	participant DB as MySQL
+
+	C->>A: Inicia sesion como club
+	A->>API: POST /api/auth/login
+	API->>DB: Valida usuario y club asociado
+	DB-->>API: Usuario autorizado
+	API-->>A: JWT
+	C->>A: Abre configuracion de canchas
+	A->>API: GET /api/canchas?club_id=...
+	API->>DB: Consulta canchas del club
+	DB-->>API: Estado y horarios
+	API-->>A: Muestra tablero de canchas
+	C->>A: Cambia estado u horario de una cancha
+	A->>API: PATCH /api/canchas/:id con JWT
+	API->>DB: Actualiza cancha si tiene permisos
+	DB-->>API: Cancha actualizada
+	API-->>A: Confirma cambios
+	C->>A: Revisa las reservas del club
+	A->>API: GET /api/reservas?club_id=...
+	API->>DB: Consulta reservas por cancha
+	DB-->>API: Reservas y estados
+	API-->>A: Muestra calendario y reservas
+```
+
+El rol `club` administra las canchas y visualiza las reservas de su entidad. Los cambios quedan guardados en MySQL y luego pueden ser consultados por jugadores y entrenadores mediante la API.
+
+### Flujo de la persona organizadora de torneos
+
+```mermaid
+sequenceDiagram
+	participant O as Organizador
+	participant A as App movil
+	participant API as API Express
+	participant DB as MySQL
+
+	O->>A: Inicia sesion como organizador
+	A->>API: POST /api/auth/login
+	API->>DB: Valida usuario con rol torneos
+	DB-->>API: Usuario autorizado
+	API-->>A: JWT
+	O->>A: Consulta clubes y canchas disponibles
+	A->>API: GET /api/clubes y GET /api/canchas?club_id=...
+	API->>DB: Busca canchas y horarios
+	DB-->>API: Disponibilidad actual
+	API-->>A: Muestra canchas libres
+	O->>A: Selecciona cancha, fecha y horario del torneo
+	A->>API: POST /api/reservas con JWT
+	API->>DB: Comprueba conflicto y bloquea horario
+	DB-->>API: Reserva del torneo
+	API-->>A: Confirma cancha bloqueada
+	O->>A: Publica inscripciones y gestiona equipos
+	A->>API: API de torneos (a incorporar)
+	API->>DB: Guarda evento, equipos e inscripciones
+```
+
+El rol `torneos` puede consultar disponibilidad y bloquear canchas para un evento. Para completar la gestión de torneos, el modelo de datos deberá incorporar tablas como `torneos`, `equipos` e `inscripciones`; esas tablas todavía no forman parte del esquema inicial.
+
 - **Celular:** contiene la interfaz React compilada. No necesita instalar MySQL.
 - **API:** servidor Node.js + Express. Valida usuarios, permisos, clubes y conflictos de reservas.
 - **Base de datos:** MySQL centralizado. Guarda usuarios, clubes, canchas, reservas y clases de forma persistente.
