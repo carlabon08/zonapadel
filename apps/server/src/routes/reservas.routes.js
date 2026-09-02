@@ -4,6 +4,22 @@ import { requireAuth } from '../auth.js';
 
 const router = Router();
 
+const normalizeDateValue = (value) => {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  return value;
+};
+
+const normalizeReserva = (reserva) => {
+  if (!reserva) return reserva;
+
+  return {
+    ...reserva,
+    fecha: normalizeDateValue(reserva.fecha),
+  };
+};
+
 router.get('/', requireAuth, async (req, res) => {
   const { club_id } = req.query;
 
@@ -28,7 +44,7 @@ router.get('/', requireAuth, async (req, res) => {
   sql += ' ORDER BY r.fecha DESC, r.hora DESC';
 
   const reservas = await query(sql, params);
-  return res.json(reservas);
+  return res.json(reservas.map(normalizeReserva));
 });
 
 router.post('/', requireAuth, async (req, res) => {
@@ -63,7 +79,7 @@ router.post('/', requireAuth, async (req, res) => {
   );
 
   const [reserva] = await query('SELECT * FROM reservas WHERE id = ?', [result.insertId]);
-  return res.status(201).json(reserva);
+  return res.status(201).json(normalizeReserva(reserva));
 });
 
 router.patch('/:id/estado', requireAuth, async (req, res) => {
@@ -74,7 +90,7 @@ router.patch('/:id/estado', requireAuth, async (req, res) => {
 
   await query('UPDATE reservas SET estado = ? WHERE id = ?', [estado, req.params.id]);
   const [reserva] = await query('SELECT * FROM reservas WHERE id = ?', [req.params.id]);
-  return res.json(reserva);
+  return res.json(normalizeReserva(reserva));
 });
 
 export default router;

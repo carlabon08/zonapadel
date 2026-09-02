@@ -9,7 +9,7 @@ import clasesRoutes from './src/routes/clases.routes.js';
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const port = process.env.PORT || 3003;
 
 app.use(cors());
@@ -30,7 +30,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Error interno del servidor' });
 });
 
-app.listen(port, () => {
-  console.log(`Servidor ZonaPadel escuchando en http://localhost:${port}`);
-});
+if (process.argv[1] && process.argv[1].endsWith('server.js')) {
+  app.listen(port, () => {
+    console.log(`Servidor ZonaPadel escuchando en http://localhost:${port}`);
+  });
+}
 
