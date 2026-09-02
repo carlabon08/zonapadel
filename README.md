@@ -422,3 +422,124 @@ npm audit
 ```
 
 Revisar cada vulnerabilidad antes de usar `npm audit fix --force`, porque puede actualizar Vite, Capacitor u otras dependencias principales y romper compatibilidad.
+
+## Plan de cobertura funcional al 100%
+
+El objetivo de **100% de cobertura funcional** significa que cada requisito y flujo de negocio tiene al menos un caso automatizado, incluyendo su resultado correcto, sus validaciones y sus permisos. No significa solamente ejecutar el 100% de las lineas de JavaScript: ambas mediciones deben controlarse por separado.
+
+### Herramientas propuestas
+
+- **Vitest:** tests unitarios y de integración del backend y frontend.
+- **Supertest:** llamadas HTTP contra Express sin abrir un puerto real.
+- **Playwright:** flujos completos en navegador, responsive y PWA.
+- **MySQL de test:** base `zonapadel_test`, aislada de la base de desarrollo.
+- **c8/Vitest coverage:** medición de statements, branches, functions y lines.
+- **Android emulator o dispositivo físico:** validación final de Capacitor.
+
+Cada pipeline debe ejecutar primero tests unitarios, luego integración, después E2E y finalmente el build. Los tests no deben usar la base `zonapadel` de desarrollo.
+
+### Matriz funcional
+
+| Area | Casos que deben cubrirse | Criterio de aceptación |
+|---|---|---|
+| Health check | API activa, respuesta JSON y status HTTP | `GET /api/health` devuelve `200` y `status: ok` |
+| Registro | Usuario válido para cada rol, email duplicado, campos faltantes, rol inválido, password hasheada | Solo se crean usuarios válidos y nunca se devuelve la password |
+| Login | Credenciales correctas, password incorrecta, email inexistente, campos faltantes, token válido y expirado | Respuesta `200` con JWT o error `400/401` correcto |
+| Autenticación | Sin header, esquema incorrecto, token manipulado y token expirado | Las rutas privadas responden `401` |
+| Clubes | Listado, club existente, club inexistente | Datos correctos y `404` cuando corresponde |
+| Entrenador multi-club | Asociar un club, asociar varios, repetir asociación, quitar asociación, consultar solo los propios | Un login permite trabajar con varios clubes y no mezcla asociaciones |
+| Canchas | Listar todas, filtrar por club, club sin canchas, actualizar estado/horario | El filtro es correcto y solo el rol permitido puede modificar |
+| Reservas | Crear reserva, campos faltantes, cancha inexistente, horario disponible, horario duplicado, reserva cancelada, listar por club | Nunca existen dos reservas activas para la misma cancha, fecha y hora |
+| Estados de reserva | Pendiente, confirmada, cancelada y estado inválido | Solo se aceptan estados definidos y se respetan permisos |
+| Clases | Crear como entrenador, crear sin datos, listar por club, filtrar por entrenador, crear con otro rol | Una clase queda vinculada a entrenador, club y cancha opcional |
+| Autorización | Jugador, club, entrenador y torneos en cada endpoint privado | Cada rol solo ejecuta las operaciones permitidas |
+| Jugador en UI | Elegir club, ver canchas, elegir horario, reservar, ver resultado, cerrar sesión | El flujo termina con reserva persistida y feedback visible |
+| Club en UI | Ver tablero, cambiar estado/horario, consultar reservas | El cambio se guarda en MySQL y se refleja al recargar |
+| Entrenador en UI | Marcar varios clubes, cambiar club activo, ver canchas, reservas y clases | Los datos cambian según club y permanecen después de cerrar/abrir |
+| Torneos en UI | Consultar clubes/canchas, reservar o bloquear horario, validar conflicto | Un horario bloqueado no puede reservarse dos veces |
+| Errores UI | API caída, timeout, `400`, `401`, `403`, `404`, `409` y `500` | Se muestra mensaje útil y la pantalla no queda bloqueada |
+| Persistencia | Reinicio de API, dos clientes simultáneos, recarga del navegador | Los datos permanecen y no se duplican por concurrencia |
+| Responsive/PWA | Android, iPhone, desktop, offline parcial, instalación PWA | Navegación y controles principales funcionan en los tamaños soportados |
+| Capacitor | Build web, sincronización Android, navegación, red HTTPS | APK abre, autentica y consume la API publicada |
+
+### Suites automatizadas
+
+#### 1. Unitarias
+
+Cubren funciones aisladas y todas sus ramas:
+
+- `signToken`, `requireAuth` y `requireRole`.
+- Hash y comparación de passwords.
+- Validaciones de payloads.
+- Filtros de clubes, canchas, reservas y clases.
+- Estados de UI, selección de club, logout y manejo de errores.
+
+#### 2. Integración de API
+
+Cada endpoint debe probarse con una base limpia y datos controlados. Para cada ruta se comprueban método, payload, headers, status, respuesta JSON, cambios en MySQL y permisos por rol.
+
+Mínimos obligatorios:
+
+```text
+auth.routes.test.js
+clubes.routes.test.js
+canchas.routes.test.js
+reservas.routes.test.js
+clases.routes.test.js
+authorization.test.js
+database-constraints.test.js
+```
+
+#### 3. E2E web
+
+Los recorridos críticos deben ejecutarse contra API y MySQL de test:
+
+```text
+e2e/jugador-reserva.spec.js
+e2e/club-administra-canchas.spec.js
+e2e/entrenador-multi-club.spec.js
+e2e/organizador-torneo.spec.js
+e2e/auth-and-errors.spec.js
+```
+
+Cada recorrido debe verificar la pantalla, la petición enviada y el registro final en la base. Una prueba que solo comprueba que un botón existe no cuenta como cobertura funcional.
+
+#### 4. Móvil y PWA
+
+- Instalar y abrir la PWA en Android y iOS.
+- Completar una reserva desde red Wi-Fi y red móvil.
+- Verificar navegación atrás, teclado, viewport y orientación.
+- Comprobar estados sin conexión y recuperación al volver la red.
+- Ejecutar el mismo conjunto crítico en un APK generado con Capacitor.
+
+### Reglas para declarar 100%
+
+No se declara cobertura funcional completa hasta que:
+
+1. Todos los casos de la matriz tienen test automatizado y pasan.
+2. Cada endpoint tiene casos de éxito, validación, autenticación y autorización.
+3. Las reservas se prueban con dos clientes simultáneos.
+4. El flujo multi-club del entrenador verifica aislamiento entre clubes.
+5. El frontend consume la API real; los arrays demo no pueden ser la fuente del flujo probado.
+6. El módulo de torneos tiene persistencia para torneos, equipos e inscripciones, o esos casos quedan explícitamente fuera del alcance.
+7. El build y el smoke test de producción pasan.
+8. Se alcanzan los umbrales técnicos acordados, sin exclusiones ocultas:
+
+```text
+Statements: 100%
+Branches:   100%
+Functions:  100%
+Lines:      100%
+```
+
+### Orden recomendado de implementación
+
+1. Conectar `App.jsx` con la API y reemplazar datos demo en los flujos críticos.
+2. Instalar Vitest, Supertest, Playwright y configurar la base `zonapadel_test`.
+3. Cubrir autenticación, permisos y restricciones de reservas.
+4. Cubrir clubes, canchas, reservas y clases con integración MySQL.
+5. Cubrir los cuatro flujos completos en Playwright.
+6. Agregar persistencia de torneos, equipos e inscripciones.
+7. Ejecutar pruebas móviles, build, cobertura y smoke test en CI.
+
+El estado actual es **planificado, no completado**: el repositorio todavía no tiene framework de tests configurado y el frontend aún conserva flujos con datos locales.
