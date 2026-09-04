@@ -410,6 +410,111 @@ h3 {
   gap: 16px;
 }
 
+.advanced-filters {
+  display: grid;
+  gap: 16px;
+  margin: 4px 0 20px;
+  padding: 16px;
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 12px;
+  background: #f4eadf;
+  color: var(--ink);
+  box-shadow: 0 8px 20px rgba(119, 92, 72, 0.08);
+}
+
+.filter-header {
+  margin-bottom: 0;
+}
+
+.advanced-filters h3 {
+  color: var(--ink);
+}
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-tab {
+  border: 1px solid rgba(148,163,184,0.24);
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.filter-tab.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #0f172a;
+}
+
+.filter-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.club-filter-field {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.club-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.club-filter-option {
+  border: 1px solid #c9b09a;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #fffdf9;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.club-filter-option.selected {
+  border-color: #14532d;
+  background: #166534;
+  color: #ffffff;
+}
+
+.filter-fields label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.filter-hint {
+  color: #6f5548;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.filter-fields input,
+.filter-fields select {
+  width: 100%;
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fffdf9;
+  color: var(--ink);
+}
+
+.filter-fields select {
+  cursor: pointer;
+}
+
 .search-field {
   display: grid;
   gap: 8px;
@@ -427,6 +532,115 @@ h3 {
   color: white;
   border-radius: 12px;
   padding: 12px 14px;
+}
+
+.applied-filter-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--theme-primary);
+  background: rgba(255, 253, 249, 0.72);
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.applied-filter-summary strong {
+  color: var(--theme-accent);
+}
+
+.court-rating {
+  display: block;
+  margin-top: 6px;
+  color: #8a5f46;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pool-distance-hint {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.court-club {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.court-opening {
+  margin-top: 10px;
+  border: 0;
+  color: #fffdf9;
+  font-weight: 800;
+}
+
+.court-photo-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(44, 28, 24, 0.42);
+}
+
+.court-photo-dialog {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
+  max-width: 820px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fffdf9;
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(44, 28, 24, 0.24);
+}
+
+.court-photo-dialog img {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  object-fit: cover;
+}
+
+.court-photo-copy {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: 32px;
+}
+
+.court-photo-copy h2 {
+  font-size: 1.8rem;
+}
+
+.court-photo-copy strong {
+  color: var(--theme-accent);
+  font-size: 1.05rem;
+}
+
+.court-photo-copy p:last-child {
+  color: var(--muted);
+}
+
+.dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 253, 249, 0.92);
+  color: var(--ink);
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .result-list {
@@ -484,9 +698,24 @@ h3 {
   margin-top: 4px;
 }
 
+.result-item strong,
+.player-item .player-info strong {
+  color: #ffffff;
+}
+
 .result-item span {
-  color: #9ae6b4;
+  color: #d9f1e4;
   font-size: 0.8rem;
+}
+
+.whatsapp-btn {
+  border: 1px solid #166534;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #dcfce7;
+  color: #14532d;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .primary-btn {
@@ -667,6 +896,24 @@ h3 {
   background: rgba(245, 158, 11, 0.2);
   border: 1px solid rgba(253, 224, 71, 0.35);
   color: #fff7ed;
+}
+
+.court-opening.abierta {
+  background: #166534;
+  border-color: #14532d;
+  color: #ffffff;
+}
+
+.court-opening.semicerrada {
+  background: #1e3a5f;
+  border-color: #172f4d;
+  color: #ffffff;
+}
+
+.court-opening.cerrada {
+  background: #713f12;
+  border-color: #5c320e;
+  color: #ffffff;
 }
 
 .club-court-head {
@@ -1151,23 +1398,31 @@ h3 {
 .stat-box {
   padding: 14px 12px;
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(148,163,184,0.14);
+  background: #2f6653;
+  border: 1px solid #4f8b72;
   display: grid;
   gap: 6px;
 }
 
 .stat-box strong {
   font-size: 1.2rem;
+  color: #ffffff;
 }
 
 .stat-box span {
-  color: #9fb9d0;
+  color: #f3fff8;
   font-size: 0.8rem;
 }
 
 .player-list {
   display: grid;
+  gap: 12px;
+}
+
+.match-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
@@ -1239,6 +1494,13 @@ h3 {
   display: block;
   color: var(--muted);
   margin-bottom: 4px;
+}
+
+.training-notice {
+  margin-top: 12px;
+  color: var(--theme-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .student-block {
@@ -1335,6 +1597,15 @@ h3 {
   gap: 3px;
 }
 
+.player-item .player-info strong {
+  color: #ffffff;
+}
+
+.player-item .player-info span,
+.player-item > small {
+  color: #d9f1e4;
+}
+
 .tournament-list {
   display: grid;
   gap: 14px;
@@ -1371,17 +1642,71 @@ h3 {
   margin-top: 4px;
 }
 
+.tournament-card > div {
+  min-width: 0;
+}
+
+.tournament-date {
+  display: grid;
+  gap: 6px;
+}
+
+.tournament-date span,
+.tournament-date small {
+  display: block;
+}
+
+.tournament-card .tournament-capacity,
+.tournament-card .tournament-participants {
+  display: grid;
+  gap: 4px;
+}
+
+.tournament-capacity strong {
+  color: var(--theme-accent);
+}
+
+.tournament-participants span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.tournament-invite {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(138,95,70,0.14);
+}
+
+.tournament-invite label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tournament-invite select {
+  border: 1px solid rgba(138,95,70,0.2);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: #fffdf9;
+  color: var(--ink);
+}
+
 .bottom-nav {
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: 12px;
+  bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding: 16px 12px;
-  border-radius: 26px;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 20px;
   background: rgba(255,255,255,0.94);
   border: 1px solid rgba(138,95,70,0.12);
   box-shadow: 0 18px 32px rgba(119, 92, 72, 0.14);
@@ -1396,8 +1721,9 @@ h3 {
   justify-content: center;
   background: transparent;
   color: var(--ink);
-  border-radius: 16px;
-  padding: 12px 8px;
+  min-height: 48px;
+  border-radius: 12px;
+  padding: 2px 4px;
   text-align: center;
 }
 
@@ -1427,8 +1753,8 @@ h3 {
 }
 
 .nav-mobile .nav-icon {
-  width: 64px;
-  height: 64px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1461,7 +1787,7 @@ h3 {
   }
 
   .content-area {
-    padding-bottom: 92px;
+    padding-bottom: 72px;
   }
 
   .main-grid {
@@ -1469,7 +1795,8 @@ h3 {
   }
 
   .court-list,
-  .search-grid {
+  .search-grid,
+  .filter-fields {
     grid-template-columns: 1fr;
   }
 }
@@ -1502,5 +1829,18 @@ h3 {
 
   .tournament-card {
     grid-template-columns: 1fr;
+  }
+
+  .court-photo-dialog {
+    grid-template-columns: 1fr;
+  }
+
+  .court-photo-dialog img {
+    min-height: 220px;
+    max-height: 280px;
+  }
+
+  .court-photo-copy {
+    padding: 24px;
   }
 }

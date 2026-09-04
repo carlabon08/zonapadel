@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const navItems = ['Inicio', 'Buscar', 'Canchas', 'Entrenamiento', 'Torneos', 'Perfil'];
+const navItems = ['Inicio', 'Entrenamiento', 'Torneos', 'Perfil'];
 const clubNavItems = ['Inicio', 'Canchas', 'Reservas', 'Perfil'];
 const trainerNavItems = ['Inicio', 'Clases', 'Canchas', 'Reservas', 'Perfil'];
 const tournamentNavItems = ['Inicio', 'Torneos', 'Canchas', 'Inscripciones', 'Perfil'];
@@ -94,28 +94,33 @@ function NavIcon({ name, active }) {
 }
 
 const courts = [
-  { id: 1, name: 'Cancha 1', distance: '0.8 km', price: '$18.000/h', surface: 'Pista rápida', slots: ['18:00', '19:00', '20:00'], status: 'Abierta', address: 'Club del Padel Norte', mapPosition: { left: '25%', top: '35%' }, openingHours: '08:00 - 23:00' },
-  { id: 2, name: 'Cancha 2', distance: '1.3 km', price: '$22.000/h', surface: 'Pista de vidrio', slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', address: 'Club del Padel Norte', mapPosition: { left: '58%', top: '48%' }, openingHours: '12:00 - 22:00' },
-  { id: 3, name: 'Cancha 3', distance: '2.4 km', price: '$25.000/h', surface: 'Interior climatizada', slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', address: 'Club del Padel Norte', mapPosition: { left: '70%', top: '60%' }, openingHours: 'Sin horario activo' },
+  { id: 1, name: 'Cancha 1', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '0.8 km', price: '$18.000/h', rating: 4.8, slots: ['18:00', '19:00', '20:00'], status: 'Abierta', address: 'Club del Padel Norte', mapPosition: { left: '25%', top: '35%' }, openingHours: '08:00 - 23:00' },
+  { id: 2, name: 'Cancha 2', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '1.3 km', price: '$22.000/h', rating: 4.5, slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', address: 'Club del Padel Norte', mapPosition: { left: '58%', top: '48%' }, openingHours: '12:00 - 22:00' },
+  { id: 3, name: 'Cancha 3', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '2.4 km', price: '$25.000/h', rating: 4.2, slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', address: 'Club del Padel Norte', mapPosition: { left: '70%', top: '60%' }, openingHours: 'Sin horario activo' },
+  { id: 4, name: 'Cancha 4', clubId: 'padel-arena', club: 'Padel Arena', distance: '4.2 km', price: '$20.000/h', rating: 4.7, slots: ['17:00', '19:00', '20:00'], status: 'Abierta', address: 'Padel Arena', mapPosition: { left: '35%', top: '62%' }, openingHours: '09:00 - 23:00' },
+  { id: 5, name: 'Cancha 5', clubId: 'padel-arena', club: 'Padel Arena', distance: '4.8 km', price: '$24.000/h', rating: 4.4, slots: ['18:00', '19:30', '21:00'], status: 'Abierta', address: 'Padel Arena', mapPosition: { left: '80%', top: '30%' }, openingHours: '10:00 - 22:30' },
+  { id: 6, name: 'Cancha 6', clubId: 'sunset-club', club: 'Sunset Club', distance: '6.1 km', price: '$19.000/h', rating: 4.6, slots: ['16:30', '18:00', '19:00'], status: 'Abierta', address: 'Sunset Club', mapPosition: { left: '50%', top: '75%' }, openingHours: '08:00 - 22:00' },
+  { id: 7, name: 'Cancha 7', clubId: 'sunset-club', club: 'Sunset Club', distance: '6.5 km', price: '$26.000/h', rating: 4.1, slots: ['17:00', '18:30', '20:00'], status: 'Semicerrada', address: 'Sunset Club', mapPosition: { left: '88%', top: '65%' }, openingHours: '11:00 - 21:00' },
 ];
 
 const players = [
-  { id: 1, name: 'Agustín Tapia', level: '4.9', style: 'Ataque / velocidad', availability: 'Hoy 18:00-21:00', city: 'Buenos Aires', accent: '#7dd3fc', phoneVisible: false, phone: '+5491123456789' },
-  { id: 2, name: 'Arturo Coelho', level: '4.8', style: 'Volea / control', availability: 'Mañana 19:00', city: 'Madrid', accent: '#dfeef9', phoneVisible: true, phone: '+34612345678' },
-  { id: 3, name: 'Delfi Brea', level: '4.7', style: 'Defensa / precisión', availability: 'Viernes 20:00', city: 'Barcelona', accent: '#f9a8d4', phoneVisible: true, phone: '+34698765432' },
-  { id: 4, name: 'Gema Triay', level: '4.6', style: 'All court / potencia', availability: 'Sábado 17:30', city: 'Valencia', accent: '#f4d7d7', phoneVisible: true, phone: '+34654321876' },
+  { id: 1, name: 'Agustín Tapia', gender: 'masculino', level: '7ma', distanceKm: 8, style: 'Ataque / velocidad', availability: 'Hoy 18:00-21:00', city: 'Buenos Aires', accent: '#7dd3fc', phoneVisible: false, phone: '+5491123456789' },
+  { id: 2, name: 'Arturo Coelho', gender: 'masculino', level: '5ta', distanceKm: 14, style: 'Volea / control', availability: 'Mañana 19:00', city: 'Madrid', accent: '#dfeef9', phoneVisible: true, phone: '+34612345678' },
+  { id: 3, name: 'Delfi Brea', gender: 'femenino', level: '6ta', distanceKm: 6, style: 'Defensa / precisión', availability: 'Viernes 20:00', city: 'Barcelona', accent: '#f9a8d4', phoneVisible: true, phone: '+34698765432' },
+  { id: 4, name: 'Gema Triay', gender: 'femenino', level: '5ta', distanceKm: 11, style: 'All court / potencia', availability: 'Sábado 17:30', city: 'Valencia', accent: '#f4d7d7', phoneVisible: true, phone: '+34654321876' },
 ];
 
 const tournaments = [
-  { name: 'Rome Major', city: 'Roma', date: '12 Sep', category: 'Premier Padel', seats: '8 plazas', image: 'https://www.padelfip.com/wp-content/uploads/2026/06/Roma-Champions-1024x682.jpeg' },
-  { name: 'London P1', city: 'Londres', date: '15 Sep', category: 'Premier Padel', seats: '12 plazas', image: 'https://cdn.premierpadel.com/uploads/hero/original/31969ff297d31a1918217f1ce0b94d546d4f8c33b4d4000052dc81c22895c2c3.jpg' },
-  { name: 'Premier Tour', city: 'Valencia', date: '20 Sep', category: 'FIP Tour', seats: '10 plazas', image: 'https://damcdn.premierpadel.com/pendularupload/abstracts/12495/thumbnail.jpg' },
+  { id: 1, name: 'Copa Funes', clubId: 'club-padel-norte', city: 'Funes', date: '12 Sep', startTime: '18:00', endTime: '20:00', category: 'Premier Padel', totalSeats: 16, availableSeats: 8, participants: ['Lucía P.', 'Mateo G.', 'Sofía R.', 'Bruno C.', 'Nina M.', 'Diego S.', 'Paula T.', 'Tomás D.'], image: 'https://www.padelfip.com/wp-content/uploads/2026/06/Roma-Champions-1024x682.jpeg' },
+  { id: 2, name: 'Liga local', clubId: 'padel-arena', city: 'Santa Fe', date: '18 Sep', startTime: '19:00', endTime: '21:00', category: 'Premier Padel', totalSeats: 20, availableSeats: 12, participants: ['Agustín T.', 'Arturo C.', 'Delfi B.', 'Gema T.', 'Julián V.', 'Carla M.', 'Martín R.', 'Sofía C.'], image: 'https://cdn.premierpadel.com/uploads/hero/original/31969ff297d31a1918217f1ce0b94d546d4f8c33b4d4000052dc81c22895c2c3.jpg' },
+  { id: 3, name: 'Premier Tour', clubId: 'sunset-club', city: 'Rafaela', date: '20 Sep', startTime: '20:00', endTime: '22:00', category: 'FIP Tour', totalSeats: 12, availableSeats: 10, participants: ['Julián V.', 'Paula T.'], image: 'https://damcdn.premierpadel.com/pendularupload/abstracts/12495/thumbnail.jpg' },
+  { id: 4, name: 'Copa Funes Nocturna', clubId: 'club-padel-norte', city: 'Funes', date: '12 Sep', startTime: '18:00', endTime: '20:00', category: '6ta', totalSeats: 16, availableSeats: 10, participants: ['Carla M.', 'Martín R.', 'Sofía C.', 'Diego V.', 'Nina M.', 'Julián V.'], image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80' },
 ];
 
 const coaches = [
-  { id: 1, name: 'Martín Ruiz', specialty: 'Mejora de drive', rating: '4.9', price: '$12.000', availability: 'Hoy 18:00' },
-  { id: 2, name: 'Sofía Costa', specialty: 'Volea y red', rating: '4.8', price: '$10.000', availability: 'Mañana 17:30' },
-  { id: 3, name: 'Diego Vera', specialty: 'Táctica defensiva', rating: '4.7', price: '$11.500', availability: 'Viernes 19:00' },
+  { id: 1, name: 'Martín Ruiz', specialty: 'Mejora de drive', rating: '4.9', price: '$12.000', availability: 'Hoy 18:00', dayKey: 'hoy', startTime: '18:00', endTime: '19:00' },
+  { id: 2, name: 'Sofía Costa', specialty: 'Volea y red', rating: '4.8', price: '$10.000', availability: 'Mañana 17:30', dayKey: 'manana', startTime: '17:30', endTime: '18:15' },
+  { id: 3, name: 'Diego Vera', specialty: 'Táctica defensiva', rating: '4.7', price: '$11.500', availability: 'Viernes 19:00', dayKey: 'viernes', startTime: '19:00', endTime: '20:00' },
 ];
 
 const trainerClassesByClub = {
@@ -195,35 +200,30 @@ const clubCourtSchedule = [
   {
     id: 1,
     name: 'Cancha 1',
-    surface: 'Pista rápida',
     status: 'Disponible',
     week: { Lun: '18:00', Mar: '17:30', Mié: '19:00', Jue: '20:30', Vie: '18:30', Sáb: '09:30', Dom: '10:00' },
   },
   {
     id: 2,
     name: 'Cancha 2',
-    surface: 'Pista de vidrio',
     status: 'Reservada',
     week: { Lun: '20:00', Mar: '18:30', Mié: '19:30', Jue: '21:00', Vie: '20:00', Sáb: '11:00', Dom: '12:00' },
   },
   {
     id: 3,
     name: 'Cancha 3',
-    surface: 'Interior climatizada',
     status: 'Disponible',
     week: { Lun: '17:30', Mar: '19:00', Mié: '18:00', Jue: '19:30', Vie: '20:30', Sáb: '08:30', Dom: '09:00' },
   },
   {
     id: 4,
     name: 'Cancha 4',
-    surface: 'Pista exterior',
     status: 'Mantenimiento',
     week: { Lun: 'libre', Mar: 'libre', Mié: '19:00', Jue: 'libre', Vie: '18:00', Sáb: 'libre', Dom: 'libre' },
   },
   {
     id: 5,
     name: 'Cancha 5',
-    surface: 'Arena premium',
     status: 'Disponible',
     week: { Lun: '20:00', Mar: '21:00', Mié: '18:30', Jue: '20:00', Vie: '19:00', Sáb: '10:00', Dom: '11:00' },
   },
@@ -264,17 +264,17 @@ const trainerBookingsByClub = {
 
 const clubCourtsByClub = {
   'club-padel-norte': [
-    { id: 1, name: 'Cancha 1', price: '$18.000/h', surface: 'Pista rápida', slots: ['18:00', '19:00', '20:00'], status: 'Abierta', openingHours: '08:00 - 23:00' },
-    { id: 2, name: 'Cancha 2', price: '$22.000/h', surface: 'Pista de vidrio', slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', openingHours: '12:00 - 22:00' },
-    { id: 3, name: 'Cancha 3', price: '$25.000/h', surface: 'Interior climatizada', slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', openingHours: 'Sin horario activo' },
+    { id: 1, name: 'Cancha 1', price: '$18.000/h', slots: ['18:00', '19:00', '20:00'], status: 'Abierta', openingHours: '08:00 - 23:00' },
+    { id: 2, name: 'Cancha 2', price: '$22.000/h', slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', openingHours: '12:00 - 22:00' },
+    { id: 3, name: 'Cancha 3', price: '$25.000/h', slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', openingHours: 'Sin horario activo' },
   ],
   'padel-arena': [
-    { id: 1, name: 'Cancha 1', price: '$20.000/h', surface: 'Pista exterior', slots: ['17:00', '19:00', '20:00'], status: 'Abierta', openingHours: '09:00 - 23:00' },
-    { id: 2, name: 'Cancha 2', price: '$24.000/h', surface: 'Pista de vidrio', slots: ['18:00', '19:30', '21:00'], status: 'Abierta', openingHours: '10:00 - 22:30' },
+    { id: 1, name: 'Cancha 1', price: '$20.000/h', slots: ['17:00', '19:00', '20:00'], status: 'Abierta', openingHours: '09:00 - 23:00' },
+    { id: 2, name: 'Cancha 2', price: '$24.000/h', slots: ['18:00', '19:30', '21:00'], status: 'Abierta', openingHours: '10:00 - 22:30' },
   ],
   'sunset-club': [
-    { id: 1, name: 'Cancha 1', price: '$19.000/h', surface: 'Arena premium', slots: ['16:30', '18:00', '19:00'], status: 'Abierta', openingHours: '08:00 - 22:00' },
-    { id: 2, name: 'Cancha 3', price: '$26.000/h', surface: 'Interior climatizada', slots: ['17:00', '18:30', '20:00'], status: 'Semicerrada', openingHours: '11:00 - 21:00' },
+    { id: 1, name: 'Cancha 1', price: '$19.000/h', slots: ['16:30', '18:00', '19:00'], status: 'Abierta', openingHours: '08:00 - 22:00' },
+    { id: 2, name: 'Cancha 3', price: '$26.000/h', slots: ['17:00', '18:30', '20:00'], status: 'Semicerrada', openingHours: '11:00 - 21:00' },
   ],
 };
 
@@ -293,6 +293,7 @@ function App() {
   const [selectedShot, setSelectedShot] = useState('drive');
   const [activeTab, setActiveTab] = useState('Inicio');
   const [selectedCourt, setSelectedCourt] = useState(courts[0]);
+  const [isCourtPhotoOpen, setIsCourtPhotoOpen] = useState(false);
   const [courtStates, setCourtStates] = useState(courts.map((court) => ({ ...court })));
   const [userLocation, setUserLocation] = useState({
     lat: -31.8667,
@@ -300,16 +301,39 @@ function App() {
     label: 'Funes, Santa Fe, Argentina',
   });
   const [matchPool, setMatchPool] = useState([
-    { id: 1, format: 'Pádel', city: 'Funes', level: '3.5+', time: '18:30', missingPlayers: 1, status: 'Buscando rival', notified: false },
-    { id: 2, format: 'Pádel', city: 'Santa Fe', level: '4.0+', time: '20:00', missingPlayers: 1, status: 'Disponible', notified: true },
-    { id: 3, format: 'Pádel', city: 'Rafaela', level: '4.5+', time: '21:00', missingPlayers: 1, status: 'Pendiente', notified: false },
+    { id: 1, format: 'Pádel', gender: 'femenino', city: 'Funes', level: '6ta', time: '18:30', missingPlayers: 1, status: 'Buscando rival', notified: false },
+    { id: 2, format: 'Pádel', gender: 'mixto', city: 'Santa Fe', level: '5ta', time: '20:00', missingPlayers: 1, status: 'Disponible', notified: true },
+    { id: 3, format: 'Pádel', gender: 'masculino', city: 'Rafaela', level: '7ma', time: '21:00', missingPlayers: 1, status: 'Pendiente', notified: false },
   ]);
   const [trainingPool, setTrainingPool] = useState([
-    { id: 1, coach: 'Martín Ruiz', specialty: 'Drive y precisión', time: 'Hoy · 18:00', duration: '60 min', available: 2, students: ['Lucía', 'Mateo', 'Sofía'], status: 'Plazas abiertas' },
-    { id: 2, coach: 'Sofía Costa', specialty: 'Volea y red', time: 'Mañana · 17:30', duration: '45 min', available: 1, students: ['Diego', 'Carla'], status: 'Última plaza' },
-    { id: 3, coach: 'Diego Vera', specialty: 'Táctica defensiva', time: 'Viernes · 19:00', duration: '60 min', available: 3, students: ['Tomás', 'Nina', 'Juli'], status: 'Disponible' },
+    { id: 1, coach: 'Martín Ruiz', specialty: 'Drive y precisión', time: 'Hoy · 18:00', dayKey: 'hoy', startTime: '18:00', endTime: '19:00', duration: '60 min', available: 2, students: ['Lucía', 'Mateo', 'Sofía'], status: 'Plazas abiertas' },
+    { id: 2, coach: 'Sofía Costa', specialty: 'Volea y red', time: 'Mañana · 17:30', dayKey: 'manana', startTime: '17:30', endTime: '18:15', duration: '45 min', available: 1, students: ['Diego', 'Carla'], status: 'Última plaza' },
+    { id: 3, coach: 'Diego Vera', specialty: 'Táctica defensiva', time: 'Viernes · 19:00', dayKey: 'viernes', startTime: '19:00', endTime: '20:00', duration: '60 min', available: 3, students: ['Tomás', 'Nina', 'Juli'], status: 'Disponible' },
   ]);
+  const [joinedTrainingIds, setJoinedTrainingIds] = useState([]);
+  const [trainingNotice, setTrainingNotice] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState({});
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true);
+  const [advancedFilterType, setAdvancedFilterType] = useState('Pool de partidos');
+  const [appliedCourtFilters, setAppliedCourtFilters] = useState({
+    opening: '',
+    date: '',
+    from: '18:00',
+    to: '22:00',
+  });
+  const [draftCourtFilters, setDraftCourtFilters] = useState(appliedCourtFilters);
+  const loggedInProfile = { gender: 'femenino' };
+  const [selectedGender, setSelectedGender] = useState(loggedInProfile.gender);
+  const verifiedPlayerLevel = '6ta';
+  const availablePlayerLevels = ['5ta', '6ta', '7ma'];
+  const [selectedPlayerLevel, setSelectedPlayerLevel] = useState(verifiedPlayerLevel);
+  const [includedClubIds, setIncludedClubIds] = useState([]);
+  const [requestedCoachIds, setRequestedCoachIds] = useState([]);
+  const [joinedTournamentIds, setJoinedTournamentIds] = useState([]);
+  const [tournamentList, setTournamentList] = useState(tournaments);
+  const [tournamentInviteId, setTournamentInviteId] = useState(null);
+  const [tournamentInvitePlayerId, setTournamentInvitePlayerId] = useState('');
+  const [tournamentNotice, setTournamentNotice] = useState('');
 
   const avatarSet = avatarOptions[selectedTheme] || avatarOptions.rosa;
   const selectedAvatar = avatarSet.find((avatar) => avatar.id === selectedAvatarId) || avatarSet[0];
@@ -318,10 +342,31 @@ function App() {
   const trainerActiveClub = clubs.find((club) => club.id === selectedClubId) || trainerAvailableClubs[0] || clubs[0];
   const currentLocationLabel = userLocation.label || 'Funes, Santa Fe, Argentina';
   const selectedClubBookings = clubBookingsByClub[selectedClubId] || clubBookingsByClub['club-padel-norte'];
+  const selectedCourtClub = clubs.find((club) => club.name === selectedCourt.club) || clubs[0];
   const trainerActiveClubId = trainerActiveClub?.id;
   const trainerClubCourts = clubCourtsByClub[trainerActiveClubId] || clubCourtsByClub['club-padel-norte'];
   const trainerClubClasses = trainerClassesByClub[trainerActiveClubId] || trainerClassesByClub['club-padel-norte'];
   const trainerClubBookings = trainerBookingsByClub[trainerActiveClubId] || trainerBookingsByClub['club-padel-norte'];
+  const rankedCourtStates = [...courtStates]
+    .filter((court) => includedClubIds.length === 0 || includedClubIds.includes(court.clubId))
+    .sort((firstCourt, secondCourt) => {
+    const ratingDifference = secondCourt.rating - firstCourt.rating;
+    if (ratingDifference !== 0) return ratingDifference;
+    return Number.parseFloat(firstCourt.distance) - Number.parseFloat(secondCourt.distance);
+  });
+  const filteredCourtStates = rankedCourtStates.filter((court) => {
+    const normalizedStatus = court.status.toLowerCase().replace('semicerrada', 'semi-cerrada');
+    const matchesOpening = !appliedCourtFilters.opening || normalizedStatus === appliedCourtFilters.opening;
+    const matchesTime = court.slots.some((slot) => slot >= appliedCourtFilters.from && slot <= appliedCourtFilters.to);
+    return matchesOpening && matchesTime;
+  });
+  const visibleMatches = matchPool.filter((match) =>
+    (match.gender === selectedGender || match.gender === 'mixto') && match.level === selectedPlayerLevel
+  );
+  const visiblePlayers = players.filter((player) =>
+    (selectedGender === 'mixto' || player.gender === selectedGender) && player.level === selectedPlayerLevel
+  );
+  const nearbyPoolPlayers = visiblePlayers.filter((player) => player.distanceKm <= 10);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -375,11 +420,12 @@ function App() {
       id: Date.now(),
       format: 'Pádel',
       city: currentLocationLabel.includes('Funes') ? 'Funes' : 'Tu zona',
-      level: '3.5+',
+      level: '3ra',
       time: '19:00',
       missingPlayers: 1,
       status: 'Buscando rival',
       notified: false,
+      gender: loggedInProfile.gender,
     };
 
     setMatchPool((current) => [newMatch, ...current]);
@@ -471,7 +517,37 @@ function App() {
     );
   };
 
+  const contactPlayerOnWhatsApp = (player) => {
+    if (!player.phone) return;
+
+    const message = encodeURIComponent(
+      `Hola ${player.name}, vi tu perfil en ZonaPadel. Estoy buscando jugar en categoría ${player.level}. ¿Qué disponibilidad tenés para jugar?`
+    );
+    const url = `https://wa.me/${player.phone.replace(/\D/g, '')}?text=${message}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const handleJoinTraining = (trainingId) => {
+    if (joinedTrainingIds.includes(trainingId)) {
+      setTrainingNotice('Ya estás inscripto en esta clase.');
+      return;
+    }
+
+    const selectedTraining = trainingPool.find((session) => session.id === trainingId);
+    const hasOverlap = trainingPool.some((session) =>
+      joinedTrainingIds.includes(session.id)
+      && session.dayKey === selectedTraining?.dayKey
+      && session.startTime < selectedTraining.endTime
+      && session.endTime > selectedTraining.startTime
+    );
+
+    if (hasOverlap) {
+      setTrainingNotice('No podés inscribirte: el horario se superpone con otra clase.');
+      return;
+    }
+
+    setJoinedTrainingIds((current) => [...current, trainingId]);
+    setTrainingNotice('Inscripción confirmada.');
     setTrainingPool((current) =>
       current.map((session) =>
         session.id === trainingId && session.available > 0
@@ -486,6 +562,106 @@ function App() {
     );
   };
 
+  const handleCancelTraining = (trainingId) => {
+    setJoinedTrainingIds((current) => current.filter((id) => id !== trainingId));
+    setTrainingPool((current) => current.map((session) => {
+      if (session.id !== trainingId) return session;
+
+      return {
+        ...session,
+        available: session.available + 1,
+        students: session.students.filter((student) => student !== 'Tú'),
+        status: 'Plazas abiertas',
+      };
+    }));
+    setTrainingNotice('Inscripción cancelada.');
+  };
+
+  const requestCoachBooking = (coachId) => {
+    if (requestedCoachIds.includes(coachId)) {
+      setRequestedCoachIds((current) => current.filter((id) => id !== coachId));
+      setTrainingNotice('Solicitud de clase individual cancelada.');
+      return;
+    }
+
+    const selectedCoach = coaches.find((coach) => coach.id === coachId);
+    const hasGroupOverlap = trainingPool.some((session) =>
+      joinedTrainingIds.includes(session.id)
+      && session.dayKey === selectedCoach?.dayKey
+      && session.startTime < selectedCoach.endTime
+      && session.endTime > selectedCoach.startTime
+    );
+    const hasCoachOverlap = coaches.some((coach) =>
+      requestedCoachIds.includes(coach.id)
+      && coach.dayKey === selectedCoach?.dayKey
+      && coach.startTime < selectedCoach.endTime
+      && coach.endTime > selectedCoach.startTime
+    );
+
+    if (hasGroupOverlap || hasCoachOverlap) {
+      setTrainingNotice('No podés enviar la solicitud: el horario se superpone con otra clase.');
+      return;
+    }
+
+    setRequestedCoachIds((current) => [...current, coachId]);
+    setTrainingNotice('Solicitud de clase enviada.');
+  };
+
+  const joinTournament = (tournamentId) => {
+    if (joinedTournamentIds.includes(tournamentId)) return;
+
+    const selectedTournament = tournamentList.find((tournament) => tournament.id === tournamentId);
+    const hasOverlap = tournamentList.some((tournament) =>
+      joinedTournamentIds.includes(tournament.id)
+      && tournament.date === selectedTournament?.date
+      && tournament.startTime < selectedTournament.endTime
+      && tournament.endTime > selectedTournament.startTime
+    );
+
+    if (hasOverlap) {
+      setTournamentNotice('No podés inscribirte: el horario se superpone con otro torneo.');
+      return;
+    }
+
+    setJoinedTournamentIds((current) => [...current, tournamentId]);
+    setTournamentNotice('Inscripción al torneo confirmada.');
+    setTournamentList((current) => current.map((tournament) => tournament.id === tournamentId
+      ? {
+          ...tournament,
+          availableSeats: Math.max(0, tournament.availableSeats - 1),
+          participants: [...tournament.participants, 'Vos'],
+        }
+      : tournament));
+  };
+
+  const cancelTournament = (tournamentId) => {
+    if (!joinedTournamentIds.includes(tournamentId)) return;
+
+    setJoinedTournamentIds((current) => current.filter((id) => id !== tournamentId));
+    setTournamentList((current) => current.map((tournament) => tournament.id === tournamentId
+      ? {
+          ...tournament,
+          availableSeats: tournament.availableSeats + 1,
+          participants: tournament.participants.filter((participant) => participant !== 'Vos'),
+        }
+      : tournament));
+    setTournamentNotice('Inscripción al torneo cancelada.');
+  };
+
+  const invitePlayerToTournament = () => {
+    const tournament = tournamentList.find((item) => item.id === tournamentInviteId);
+    const player = players.find((item) => String(item.id) === String(tournamentInvitePlayerId));
+    if (!tournament || !player?.phone) return;
+
+    const clubName = clubs.find((club) => club.id === tournament.clubId)?.name || tournament.city;
+    const message = encodeURIComponent(
+      `Hola ${player.name}, te invito a inscribirte conmigo en ${tournament.name}. Club: ${clubName}. Fecha: ${tournament.date}. Categoría: ${tournament.category}. Quedan ${tournament.availableSeats} plazas disponibles. ¿Te sumás?`
+    );
+    window.open(`https://wa.me/${player.phone.replace(/\D/g, '')}?text=${message}`, '_blank', 'noopener,noreferrer');
+    setTournamentInviteId(null);
+    setTournamentInvitePlayerId('');
+  };
+
   const openMaps = (court, provider = 'google') => {
     const query = encodeURIComponent(`${court.name} ${court.address}`);
     const url = provider === 'apple'
@@ -495,45 +671,222 @@ function App() {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const renderPlayerContent = () => {
-    switch (activeTab) {
+  const updateCourtFilter = (field, value) => {
+    setDraftCourtFilters((current) => ({ ...current, [field]: value }));
+  };
+
+  const toggleIncludedClub = (clubId) => {
+    setIncludedClubIds((current) => current.includes(clubId)
+      ? current.filter((id) => id !== clubId)
+      : [...current, clubId]);
+  };
+
+  const formatFilterDate = (date) => {
+    if (!date) return '';
+    const [year, month, day] = date.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatOpeningFilter = (opening) => ({
+    abierta: 'Abierta',
+    'semi-cerrada': 'Semi-cerrada',
+    cerrada: 'Cerrada',
+  }[opening] || 'Cualquiera');
+
+  const applyCourtFilters = () => {
+    setAppliedCourtFilters(draftCourtFilters);
+  };
+
+  const activeFilterSummary = [
+    appliedCourtFilters.opening ? `Apertura: ${formatOpeningFilter(appliedCourtFilters.opening)}` : '',
+    appliedCourtFilters.date ? `Fecha: ${formatFilterDate(appliedCourtFilters.date)}` : '',
+    `Horario: ${appliedCourtFilters.from} - ${appliedCourtFilters.to}`,
+  ].filter(Boolean);
+
+  const renderPlayerTabContent = (tab = activeTab) => {
+    switch (tab) {
       case 'Buscar':
         return (
           <div className="tab-content">
             <section className="panel">
-              <div className="section-header">
-                <h3>Buscar jugadores y canchas</h3>
-                <button type="button" className="link-btn">Filtros</button>
+              <div className="advanced-filters" aria-label="Filtros avanzados">
+                  <div className="section-header filter-header">
+                    <h3>Filtros de {advancedFilterType.toLowerCase()}</h3>
+                  </div>
+                  <div className="filter-tabs" role="tablist" aria-label="Tipo de búsqueda">
+                      {['Pool de partidos', 'Canchas', 'Jugadores'].map((filterType) => (
+                      <button
+                        key={filterType}
+                        type="button"
+                        role="tab"
+                        aria-selected={advancedFilterType === filterType}
+                        className={advancedFilterType === filterType ? 'filter-tab active' : 'filter-tab'}
+                        onClick={() => setAdvancedFilterType(filterType)}
+                      >
+                        {filterType}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="filter-fields">
+                    {advancedFilterType === 'Pool de partidos' ? (
+                      <>
+                        <label>Género
+                          <select value={selectedGender} onChange={(event) => setSelectedGender(event.target.value)} aria-label="Género del partido">
+                            <option value="femenino">Femenino</option>
+                            <option value="masculino">Masculino</option>
+                            <option value="mixto">Mixto</option>
+                          </select>
+                        </label>
+                        <label>Fecha
+                          <input type="date" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha del partido" />
+                        </label>
+                        <label>Desde
+                          <input type="time" value={draftCourtFilters.from} onChange={(event) => updateCourtFilter('from', event.target.value)} aria-label="Hora inicial del partido" />
+                        </label>
+                        <label>Hasta
+                          <input type="time" value={draftCourtFilters.to} onChange={(event) => updateCourtFilter('to', event.target.value)} aria-label="Hora final del partido" />
+                        </label>
+                        <label>Nivel
+                          <select value={selectedPlayerLevel} onChange={(event) => setSelectedPlayerLevel(event.target.value)} aria-label="Nivel del partido">
+                            {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+                          </select>
+                        </label>
+                      </>
+                    ) : null}
+                    {advancedFilterType === 'Canchas' ? (
+                      <>
+                        <div className="club-filter-field">
+                          <span>Clubes incluidos</span>
+                          <div className="club-filter-options" role="group" aria-label="Clubes incluidos">
+                            {clubs.map((club) => (
+                              <button
+                                key={club.id}
+                                type="button"
+                                className={includedClubIds.includes(club.id) ? 'club-filter-option selected' : 'club-filter-option'}
+                                aria-pressed={includedClubIds.includes(club.id)}
+                                onClick={() => toggleIncludedClub(club.id)}
+                              >
+                                {club.name}
+                              </button>
+                            ))}
+                          </div>
+                          <small className="filter-hint">Sin selección: se incluyen todos los clubes.</small>
+                        </div>
+                        <label>Estado de la cancha
+                          <select value={draftCourtFilters.opening} onChange={(event) => updateCourtFilter('opening', event.target.value)} aria-label="Apertura">
+                            <option value="">Cualquiera</option>
+                            <option value="abierta">Abierta</option>
+                            <option value="semi-cerrada">Semi-cerrada</option>
+                            <option value="cerrada">Cerrada</option>
+                          </select>
+                          <small className="filter-hint">Se construye con opiniones de usuarios.</small>
+                        </label>
+                        <label>Fecha
+                          <input type="date" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha de disponibilidad" />
+                        </label>
+                        <label>Desde
+                          <input type="time" value={draftCourtFilters.from} onChange={(event) => updateCourtFilter('from', event.target.value)} aria-label="Hora inicial" />
+                        </label>
+                        <label>Hasta
+                          <input type="time" value={draftCourtFilters.to} onChange={(event) => updateCourtFilter('to', event.target.value)} aria-label="Hora final" />
+                        </label>
+                        <label>Valoración de jugadores
+                          <select defaultValue="">
+                            <option value="">Cualquier valoración</option>
+                            <option value="1">1 estrella o más</option>
+                            <option value="2">2 estrellas o más</option>
+                            <option value="3">3 estrellas o más</option>
+                            <option value="4">4 estrellas o más</option>
+                            <option value="5">5 estrellas</option>
+                          </select>
+                          <small className="filter-hint">Basada en opiniones de jugadores.</small>
+                        </label>
+                      </>
+                    ) : null}
+                    {advancedFilterType === 'Jugadores' ? (
+                      <>
+                        <label>Género
+                          <select value={selectedGender} onChange={(event) => setSelectedGender(event.target.value)} aria-label="Género del jugador">
+                            <option value="femenino">Femenino</option>
+                            <option value="masculino">Masculino</option>
+                            <option value="mixto">Mixto</option>
+                          </select>
+                        </label>
+                        <label>Nivel
+                          <select value={selectedPlayerLevel} onChange={(event) => setSelectedPlayerLevel(event.target.value)} aria-label="Nivel">
+                            {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+                          </select>
+                        </label>
+                        <label>Estilo
+                          <select defaultValue="">
+                            <option value="">Cualquier estilo</option>
+                            <option value="defensa">Defensa</option>
+                            <option value="volea">Volea y red</option>
+                            <option value="ataque">Ataque</option>
+                          </select>
+                        </label>
+                        <label>Disponibilidad
+                          <select defaultValue="">
+                            <option value="">Cualquier momento</option>
+                            <option value="hoy">Hoy</option>
+                            <option value="manana">Mañana</option>
+                            <option value="fin-semana">Fin de semana</option>
+                          </select>
+                        </label>
+                      </>
+                    ) : null}
+                  </div>
+                  <button type="button" className="primary-btn small-btn" onClick={applyCourtFilters}>Aplicar filtros</button>
               </div>
 
-              <div className="search-grid">
-                <div className="search-field">
-                  <label>Ciudad</label>
-                  <input value={currentLocationLabel} readOnly />
-                </div>
-                <div className="search-field">
-                  <label>Horario</label>
-                  <input defaultValue="18:00 - 22:00" />
-                </div>
-                <div className="search-field">
-                  <label>Nivel</label>
-                  <input defaultValue="4.0+" />
-                </div>
-                <div className="search-field">
-                  <label>Tipo</label>
-                  <input defaultValue="Club / cubierta" />
-                </div>
+              <div className="applied-filter-summary" aria-live="polite">
+                <strong>Filtros aplicados</strong>
+                <span>{activeFilterSummary.join(' · ')}</span>
               </div>
             </section>
 
+            {advancedFilterType === 'Canchas' ? (
+              <section className="panel">
+                <div className="section-header">
+                  <h3>Canchas disponibles</h3>
+                  <span className="filter-result-label">Ordenadas por valoración</span>
+                </div>
+                <div className="court-list">
+                  {filteredCourtStates.map((court) => (
+                    <button
+                      key={court.id}
+                      type="button"
+                      className={selectedCourt.id === court.id ? 'court-card active' : 'court-card'}
+                      onClick={() => setSelectedCourt(court)}
+                    >
+                      <div className="court-top">
+                        <div>
+                          <strong>{court.name}</strong>
+                          <small>{court.club} · {court.distance}</small>
+                        </div>
+                        <span>{court.price}</span>
+                      </div>
+                      <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
+                      <div className="slot-row">
+                        {court.slots.map((slot) => <span key={slot}>{slot}</span>)}
+                      </div>
+                      <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>{court.status}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {advancedFilterType === 'Pool de partidos' ? (
             <section className="panel pool-panel">
               <div className="section-header">
                 <h3>Pool de partidos</h3>
                 <button type="button" className="link-btn" onClick={handleReserveClick}>Crear partido</button>
               </div>
+              <p className="pool-distance-hint">Jugadores disponibles dentro de un radio de 10 km.</p>
 
               <div className="match-pool">
-                {matchPool.map((match) => (
+                {visibleMatches.map((match) => (
                   <div key={match.id} className="match-card">
                     <div className="match-header">
                       <strong>{match.format}</strong>
@@ -545,7 +898,7 @@ function App() {
                     <div className="recipient-picker">
                       <span>Jugadores disponibles en ese horario</span>
                       <div className="recipient-list">
-                        {players.map((player) => (
+                        {nearbyPoolPlayers.map((player) => (
                           <label key={`${match.id}-${player.id}`} className="recipient-option">
                             <input
                               type="checkbox"
@@ -565,15 +918,17 @@ function App() {
                 ))}
               </div>
             </section>
+            ) : null}
 
+            {advancedFilterType === 'Jugadores' ? (
             <section className="panel">
               <div className="section-header">
                 <h3>Resultados</h3>
-                <button type="button" className="link-btn">Ver mapa</button>
+                <span className="filter-result-label">Contactá para coordinar</span>
               </div>
 
               <div className="result-list">
-                {players.map((player) => (
+                {visiblePlayers.map((player) => (
                   <div key={player.id} className="result-item">
                     <div className="player-badge" style={{ background: player.accent }}>{player.name.slice(0, 1)}</div>
                     <div>
@@ -581,10 +936,14 @@ function App() {
                       <p>{player.city} · {player.level}</p>
                     </div>
                     <span>{player.phoneVisible ? 'Contacto visible' : player.availability}</span>
+                    <button type="button" className="whatsapp-btn" onClick={() => contactPlayerOnWhatsApp(player)}>
+                      Consultar disponibilidad
+                    </button>
                   </div>
                 ))}
               </div>
             </section>
+            ) : null}
           </div>
         );
       case 'Canchas':
@@ -596,7 +955,7 @@ function App() {
                 <button type="button" className="link-btn">Mapa</button>
               </div>
               <div className="court-list">
-                {courtStates.map((court) => (
+                {rankedCourtStates.map((court) => (
                   <button
                     key={court.id}
                     type="button"
@@ -610,15 +969,24 @@ function App() {
                       </div>
                       <span>{court.price}</span>
                     </div>
-                    <p>{court.surface}</p>
+                    <p className="court-club">{court.club}</p>
+                    <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                     <div className="slot-row">
                       {court.slots.map((slot) => (
                         <span key={slot}>{slot}</span>
                       ))}
                     </div>
-                    <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <button
+                      type="button"
+                      className={`status-pill court-opening ${court.status.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setIsCourtPhotoOpen(true);
+                      }}
+                      aria-label={`Ver foto de la cancha. Apertura: ${court.status}`}
+                    >
                       {court.status}
-                    </span>
+                    </button>
                   </button>
                 ))}
               </div>
@@ -631,7 +999,7 @@ function App() {
               </div>
 
               <div className="map-card">
-                {courtStates.map((court) => (
+                {rankedCourtStates.map((court) => (
                   <button
                     key={court.id}
                     type="button"
@@ -694,10 +1062,14 @@ function App() {
                       <button
                         type="button"
                         className="primary-btn small-btn"
-                        onClick={() => handleJoinTraining(session.id)}
-                        disabled={session.available === 0}
+                        onClick={() => joinedTrainingIds.includes(session.id)
+                          ? handleCancelTraining(session.id)
+                          : handleJoinTraining(session.id)}
+                        disabled={session.available === 0 && !joinedTrainingIds.includes(session.id)}
                       >
-                        {session.available === 0 ? 'Completa' : 'Unirme'}
+                        {joinedTrainingIds.includes(session.id)
+                          ? 'Cancelar inscripción'
+                          : session.available === 0 ? 'Completa' : 'Unirme'}
                       </button>
                     </div>
 
@@ -712,6 +1084,7 @@ function App() {
                   </div>
                 ))}
               </div>
+              {trainingNotice ? <p className="training-notice" role="status">{trainingNotice}</p> : null}
             </section>
 
             <section className="panel">
@@ -733,7 +1106,14 @@ function App() {
                       <strong>{coach.rating}</strong>
                       <span>{coach.price}</span>
                     </div>
-                    <button type="button" className="primary-btn small-btn">Reservar</button>
+                    <button
+                      type="button"
+                      className="primary-btn small-btn"
+                      onClick={() => requestCoachBooking(coach.id)}
+                      disabled={false}
+                    >
+                      {requestedCoachIds.includes(coach.id) ? 'Cancelar solicitud' : 'Reservar'}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -750,23 +1130,69 @@ function App() {
               </div>
 
               <div className="tournament-list">
-                {tournaments.map((tournament) => (
-                  <div key={tournament.name} className="tournament-card">
+                {tournamentList.map((tournament) => (
+                  <div key={tournament.id} className="tournament-card">
                     <div className="tournament-image">
                       <img src={tournament.image} alt={tournament.name} />
                     </div>
                     <div>
                       <strong>{tournament.name}</strong>
-                      <p>{tournament.city}</p>
+                      <p>{clubs.find((club) => club.id === tournament.clubId)?.name || tournament.city}</p>
+                      <small>{tournament.city}</small>
                     </div>
-                    <div>
+                    <div className="tournament-date">
                       <span>{tournament.date}</span>
+                      <small>{tournament.startTime} - {tournament.endTime}</small>
                       <small>{tournament.category}</small>
                     </div>
-                    <button type="button" className="primary-btn small-btn">{tournament.seats}</button>
+                    <div className="tournament-capacity">
+                      <strong>{tournament.availableSeats} disponibles</strong>
+                      <span>{tournament.totalSeats} plazas totales</span>
+                    </div>
+                    <div className="tournament-participants">
+                      <small>Jugadores inscriptos</small>
+                      <span>{tournament.participants.join(', ')}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="primary-btn small-btn"
+                      onClick={() => joinedTournamentIds.includes(tournament.id)
+                        ? cancelTournament(tournament.id)
+                        : joinTournament(tournament.id)}
+                      disabled={tournament.availableSeats === 0 && !joinedTournamentIds.includes(tournament.id)}
+                    >
+                      {joinedTournamentIds.includes(tournament.id)
+                        ? 'Cancelar inscripción'
+                        : tournament.availableSeats === 0 ? 'Completo' : 'Sumarme'}
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary-btn small-btn"
+                      onClick={() => setTournamentInviteId(tournament.id)}
+                      disabled={tournament.availableSeats === 0}
+                    >
+                      Invitar compañero
+                    </button>
+                    {tournamentInviteId === tournament.id ? (
+                      <div className="tournament-invite" aria-label={`Invitar a un compañero a ${tournament.name}`}>
+                        <label>Compañero
+                          <select value={tournamentInvitePlayerId} onChange={(event) => setTournamentInvitePlayerId(event.target.value)}>
+                            <option value="">Seleccionar jugador</option>
+                            {players.map((player) => <option key={player.id} value={player.id}>{player.name}</option>)}
+                          </select>
+                        </label>
+                        <button type="button" className="primary-btn small-btn" onClick={invitePlayerToTournament} disabled={!tournamentInvitePlayerId}>
+                          Enviar por WhatsApp
+                        </button>
+                        <button type="button" className="link-btn" onClick={() => setTournamentInviteId(null)}>
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>
+              {tournamentNotice ? <p className="training-notice" role="status">{tournamentNotice}</p> : null}
             </section>
           </div>
         );
@@ -842,7 +1268,7 @@ function App() {
 
             <section className="panel">
               <div className="section-header">
-                <h3>Actividad</h3>
+                <h3>Mi Actividad</h3>
                 <button type="button" className="link-btn">Ver más</button>
               </div>
               <div className="stats-grid">
@@ -866,9 +1292,10 @@ function App() {
                 <h2>Descubre rivales y canchas cercanas</h2>
                 <p>Filtra por nivel, horario y estilo de juego para reservar en pocos clics.</p>
               </div>
-              <button type="button" className="primary-btn">Ver mapa</button>
+              <button type="button" className="primary-btn" onClick={() => setActiveTab('Canchas')}>Ver mapa</button>
             </section>
 
+            {activeTab !== 'Inicio' ? (
             <div className="main-grid">
               <div className="main-column">
                 <section className="panel">
@@ -878,7 +1305,7 @@ function App() {
                   </div>
 
                   <div className="court-list">
-                    {courtStates.map((court) => (
+                    {rankedCourtStates.map((court) => (
                       <button
                         key={court.id}
                         type="button"
@@ -892,15 +1319,24 @@ function App() {
                           </div>
                           <span>{court.price}</span>
                         </div>
-                        <p>{court.surface}</p>
+                        <p className="court-club">{court.club}</p>
+                        <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                         <div className="slot-row">
                           {court.slots.map((slot) => (
                             <span key={slot}>{slot}</span>
                           ))}
                         </div>
-                        <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <button
+                          type="button"
+                          className={`status-pill court-opening ${court.status.toLowerCase().replace(/\s+/g, '-')}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setIsCourtPhotoOpen(true);
+                          }}
+                          aria-label={`Ver foto de la cancha. Apertura: ${court.status}`}
+                        >
                           {court.status}
-                        </span>
+                        </button>
                       </button>
                     ))}
                   </div>
@@ -913,7 +1349,7 @@ function App() {
                   </div>
 
                   <div className="map-card">
-                    {courtStates.map((court) => (
+                    {rankedCourtStates.map((court) => (
                       <button
                         key={court.id}
                         type="button"
@@ -943,7 +1379,7 @@ function App() {
               <aside className="side-column">
                 <section className="panel activity-panel">
                   <div className="section-header">
-                    <h3>Actividad</h3>
+                    <h3>Mi Actividad</h3>
                     <button type="button" className="link-btn">Ver más</button>
                   </div>
 
@@ -978,10 +1414,24 @@ function App() {
                 </section>
               </aside>
             </div>
+            ) : null}
 
           </>
         );
     }
+  };
+
+  const renderPlayerContent = () => {
+    if (activeTab === 'Inicio') {
+      return (
+        <>
+          {renderPlayerTabContent('Inicio')}
+          {renderPlayerTabContent('Buscar')}
+        </>
+      );
+    }
+
+    return renderPlayerTabContent();
   };
 
   const renderTrainerContent = () => {
@@ -1087,7 +1537,6 @@ function App() {
                       </div>
                       <span>{court.price}</span>
                     </div>
-                    <p>{court.surface}</p>
                     <div className="slot-row">
                       {court.slots.map((slot) => (
                         <span key={slot}>{slot}</span>
@@ -1110,7 +1559,7 @@ function App() {
                 <div className="club-logo">ZP</div>
                 <div>
                   <strong>{trainerActiveClub.name}</strong>
-                  <p>{activeTrainerCourt.name} · {activeTrainerCourt.surface}</p>
+                  <p>{activeTrainerCourt.name}</p>
                   <small>{activeTrainerCourt.price} · 18:00 / 19:00</small>
                 </div>
               </div>
@@ -1165,7 +1614,7 @@ function App() {
               </div>
 
               <div className="court-list">
-                {courtStates.map((court) => (
+                {rankedCourtStates.map((court) => (
                   <button
                     key={court.id}
                     type="button"
@@ -1179,7 +1628,6 @@ function App() {
                       </div>
                       <span>{court.price}</span>
                     </div>
-                    <p>{court.surface}</p>
                     <div className="slot-row">
                       {court.slots.map((slot) => (
                         <span key={slot}>{slot}</span>
@@ -1231,12 +1679,11 @@ function App() {
               </div>
 
               <div className="club-court-list">
-                {courtStates.map((court) => (
+                {rankedCourtStates.map((court) => (
                   <div key={court.id} className="club-court-card">
                     <div className="club-court-head">
                       <div>
                         <strong>{court.name}</strong>
-                        <p>{court.surface}</p>
                       </div>
                       <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>{court.status}</span>
                     </div>
@@ -1313,7 +1760,14 @@ function App() {
                       <strong>{coach.rating}</strong>
                       <span>{coach.price}</span>
                     </div>
-                    <button type="button" className="primary-btn small-btn">Reservar</button>
+                    <button
+                      type="button"
+                      className="primary-btn small-btn"
+                      onClick={() => requestCoachBooking(coach.id)}
+                      disabled={false}
+                    >
+                      {requestedCoachIds.includes(coach.id) ? 'Cancelar solicitud' : 'Reservar'}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -1385,7 +1839,6 @@ function App() {
                       <strong>{court.name}</strong>
                       <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>{court.status}</span>
                     </div>
-                    <p>{court.surface}</p>
                     <div className="calendar-days">
                       {Object.entries(court.week).map(([day, slot]) => (
                         <div key={`${court.id}-${day}`} className={slot === 'libre' ? 'day-pill free' : 'day-pill busy'}>
@@ -1550,7 +2003,11 @@ function App() {
               key={item}
               type="button"
               className={activeTab === item ? 'nav-item active' : 'nav-item'}
-              onClick={() => setActiveTab(item)}
+              onClick={() => {
+                setActiveTab(item);
+                setShowAdvancedFilters(item === 'Buscar');
+                if (item === 'Inicio') setAdvancedFilterType('Pool de partidos');
+              }}
             >
               {item}
             </button>
@@ -1572,13 +2029,6 @@ function App() {
           </div>
 
           <div className="topbar-tools">
-            <div className="search-box">
-              <span>🔎</span>
-              <input type="text" placeholder={selectedRole === 'club' ? 'Buscar reserva o cancha' : 'Buscar pista, jugador o torneo'} />
-            </div>
-            <button type="button" className="primary-btn" onClick={handleReserveClick}>
-              {selectedRole === 'club' ? 'Cobrar' : 'Reservar'}
-            </button>
             <button type="button" className="link-btn" onClick={handleLogout}>
               Volver al logueo
             </button>
@@ -1594,7 +2044,11 @@ function App() {
             key={item}
             type="button"
             className={activeTab === item ? 'nav-mobile active' : 'nav-mobile'}
-            onClick={() => setActiveTab(item)}
+            onClick={() => {
+              setActiveTab(item);
+              setShowAdvancedFilters(item === 'Buscar');
+              if (item === 'Inicio') setAdvancedFilterType('Pool de partidos');
+            }}
             aria-label={item}
             title={item}
           >
@@ -1603,6 +2057,29 @@ function App() {
           </button>
         ))}
       </nav>
+
+      {isCourtPhotoOpen ? (
+        <div className="court-photo-backdrop" role="presentation" onClick={() => setIsCourtPhotoOpen(false)}>
+          <section
+            className="court-photo-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="court-photo-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="dialog-close" onClick={() => setIsCourtPhotoOpen(false)} aria-label="Cerrar foto">
+              ×
+            </button>
+            <img src={selectedCourtClub.image} alt={`Referencia visual de ${selectedCourt.name}`} />
+            <div className="court-photo-copy">
+              <p className="eyebrow">{selectedCourtClub.name}</p>
+              <h2 id="court-photo-title">{selectedCourt.name}</h2>
+              <strong>Apertura: {selectedCourt.status}</strong>
+              <p>Imagen de referencia del club. La apertura se informa y actualiza según la disponibilidad.</p>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

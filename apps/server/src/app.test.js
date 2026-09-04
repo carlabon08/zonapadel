@@ -2,10 +2,12 @@ import bcrypt from 'bcryptjs';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 import { app } from '../server.js';
+import { signToken } from './auth.js';
 import { query } from './db.js';
 
 const createdEmails = [];
 const createdReservationIds = [];
+const createdClassIds = [];
 
 const nextReservationDate = (offsetDays = 0) => {
   const date = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
@@ -51,7 +53,16 @@ async function cleanupCreatedReservations() {
   createdReservationIds.length = 0;
 }
 
+async function cleanupCreatedClasses() {
+  if (!createdClassIds.length) return;
+
+  const ids = [...new Set(createdClassIds)];
+  await query('DELETE FROM clases WHERE id IN (?)', [ids]);
+  createdClassIds.length = 0;
+}
+
 afterEach(async () => {
+  await cleanupCreatedClasses();
   await cleanupCreatedReservations();
   await cleanupCreatedUsers();
 });
@@ -538,5 +549,66 @@ describe('Clases', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe('Faltan datos para crear la clase');
+  });
+
+  it('persiste la inscripción y rechaza otra clase superpuesta', async () => {
+    const entrenador = await createUser({ rol: 'entrenador', nombre: 'Entrenador Inscripciones' });
+    const jugador = await createUser({ rol: 'jugador', nombre: 'Jugador Inscripciones' });
+    const entrenadorToken = signToken(entrenador);
+    const jugadorToken = signToken(jugador);
+    const fecha = nextReservationDate(2);
+
+    const crearClase = async (titulo, hora_inicio, hora_fin) => {
+      const response = await request(app)
+        .post('/api/clases')
+        .set('Authorization', `Bearer ${entrenadorToken}`)
+        .send({ club_id: 'club-padel-norte', titulo, fecha, hora_inicio, hora_fin, cupos: 2 });
+
+      expect(response.status).toBe(201);
+      createdClassIds.push(response.body.id);
+      return response.body.id;
+    };
+
+    const primeraClaseId = await crearClase('Clase persistida', '18:00', '19:00');
+    const segundaClaseId = await crearClase('Clase superpuesta', '18:30', '19:30');
+
+    const primeraInscripcion = await request(app)
+      .post(`/api/clases/${primeraClaseId}/inscripciones`)
+      .set('Authorization', `Bearer ${jugadorToken}`);
+
+    expect(primeraInscripcion.status).toBe(201);
+    expect(primeraInscripcion.body).toMatchObject({
+      clase_id: primeraClaseId,
+      jugador_id: jugador.id,
+      estado: 'Activa',
+      fecha,
+    });
+
+    const storedEnrollment = await query('SELECT * FROM inscripciones_clases WHERE id = ?', [primeraInscripcion.body.id]);
+    expect(storedEnrollment).toHaveLength(1);
+
+    const duplicate = await request(app)
+      .post(`/api/clases/${primeraClaseId}/inscripciones`)
+      .set('Authorization', `Bearer ${jugadorToken}`);
+    expect(duplicate.status).toBe(409);
+    expect(duplicate.body.message).toBe('Ya estás inscripto en esta clase');
+
+    const overlapping = await request(app)
+      .post(`/api/clases/${segundaClaseId}/inscripciones`)
+      .set('Authorization', `Bearer ${jugadorToken}`);
+    expect(overlapping.status).toBe(409);
+    expect(overlapping.body.message).toBe('Ya tenés un entrenamiento en ese horario');
+
+    const cancelled = await request(app)
+      .delete(`/api/clases/${primeraClaseId}/inscripciones`)
+      .set('Authorization', `Bearer ${jugadorToken}`);
+    expect(cancelled.status).toBe(200);
+    expect(cancelled.body.message).toBe('Inscripción cancelada');
+
+    const storedCancelled = await query(
+      'SELECT estado FROM inscripciones_clases WHERE clase_id = ? AND jugador_id = ?',
+      [primeraClaseId, jugador.id]
+    );
+    expect(storedCancelled[0].estado).toBe('Cancelada');
   });
 });

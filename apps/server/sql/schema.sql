@@ -66,11 +66,25 @@ CREATE TABLE IF NOT EXISTS clases (
   cancha_id INT NULL,
   titulo VARCHAR(160) NOT NULL,
   horario VARCHAR(80),
+  fecha DATE NULL,
+  hora_inicio TIME NULL,
+  hora_fin TIME NULL,
   cupos INT DEFAULT 0,
   estado VARCHAR(60) DEFAULT 'Disponible',
   FOREIGN KEY (entrenador_id) REFERENCES usuarios(id) ON DELETE CASCADE,
   FOREIGN KEY (club_id) REFERENCES clubes(id) ON DELETE CASCADE,
   FOREIGN KEY (cancha_id) REFERENCES canchas(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS inscripciones_clases (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  clase_id INT NOT NULL,
+  jugador_id INT NOT NULL,
+  estado ENUM('Activa', 'Cancelada') DEFAULT 'Activa',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY una_inscripcion_por_clase (clase_id, jugador_id),
+  FOREIGN KEY (clase_id) REFERENCES clases(id) ON DELETE CASCADE,
+  FOREIGN KEY (jugador_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 -- Seed: clubes
