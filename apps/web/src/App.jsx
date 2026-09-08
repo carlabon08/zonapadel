@@ -94,9 +94,9 @@ function NavIcon({ name, active }) {
 }
 
 const courts = [
-  { id: 1, name: 'Cancha 1', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '0.8 km', price: '$18.000/h', rating: 4.8, slots: ['18:00', '19:00', '20:00'], status: 'Abierta', address: 'Club del Padel Norte', mapPosition: { left: '25%', top: '35%' }, openingHours: '08:00 - 23:00' },
-  { id: 2, name: 'Cancha 2', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '1.3 km', price: '$22.000/h', rating: 4.5, slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', address: 'Club del Padel Norte', mapPosition: { left: '58%', top: '48%' }, openingHours: '12:00 - 22:00' },
-  { id: 3, name: 'Cancha 3', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '2.4 km', price: '$25.000/h', rating: 4.2, slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', address: 'Club del Padel Norte', mapPosition: { left: '70%', top: '60%' }, openingHours: 'Sin horario activo' },
+  { id: 1, name: 'Cancha 1', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '0.8 km', price: '$18.000/h', precio_partido: '$18.000/h', precio_clase: '$22.000/h', precio_torneo: '$25.000/h', rating: 4.8, slots: ['18:00', '19:00', '20:00'], status: 'Abierta', address: 'Club del Padel Norte', mapPosition: { left: '25%', top: '35%' }, openingHours: '08:00 - 23:00' },
+  { id: 2, name: 'Cancha 2', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '1.3 km', price: '$22.000/h', precio_partido: '$22.000/h', precio_clase: '$26.000/h', precio_torneo: '$30.000/h', rating: 4.5, slots: ['17:30', '18:30', '21:00'], status: 'Semicerrada', address: 'Club del Padel Norte', mapPosition: { left: '58%', top: '48%' }, openingHours: '12:00 - 22:00' },
+  { id: 3, name: 'Cancha 3', clubId: 'club-padel-norte', club: 'Club del Padel Norte', distance: '2.4 km', price: '$25.000/h', precio_partido: '$25.000/h', precio_clase: '$29.000/h', precio_torneo: '$34.000/h', rating: 4.2, slots: ['16:00', '18:00', '19:30'], status: 'Cerrada', address: 'Club del Padel Norte', mapPosition: { left: '70%', top: '60%' }, openingHours: 'Sin horario activo' },
   { id: 4, name: 'Cancha 4', clubId: 'padel-arena', club: 'Padel Arena', distance: '4.2 km', price: '$20.000/h', rating: 4.7, slots: ['17:00', '19:00', '20:00'], status: 'Abierta', address: 'Padel Arena', mapPosition: { left: '35%', top: '62%' }, openingHours: '09:00 - 23:00' },
   { id: 5, name: 'Cancha 5', clubId: 'padel-arena', club: 'Padel Arena', distance: '4.8 km', price: '$24.000/h', rating: 4.4, slots: ['18:00', '19:30', '21:00'], status: 'Abierta', address: 'Padel Arena', mapPosition: { left: '80%', top: '30%' }, openingHours: '10:00 - 22:30' },
   { id: 6, name: 'Cancha 6', clubId: 'sunset-club', club: 'Sunset Club', distance: '6.1 km', price: '$19.000/h', rating: 4.6, slots: ['16:30', '18:00', '19:00'], status: 'Abierta', address: 'Sunset Club', mapPosition: { left: '50%', top: '75%' }, openingHours: '08:00 - 22:00' },
@@ -139,9 +139,9 @@ const trainerClassesByClub = {
 };
 
 const tournamentEvents = [
-  { id: 1, name: 'Copa Funes', date: '12 Sep', court: 'Cancha 1', teams: 8, status: 'Abierta', budget: '$180.000' },
-  { id: 2, name: 'Liga local', date: '18 Sep', court: 'Cancha 2', teams: 10, status: 'Confirmada', budget: '$220.000' },
-  { id: 3, name: 'Mini torneos', date: '22 Sep', court: 'Cancha 3', teams: 6, status: 'Pendiente', budget: '$120.000' },
+  { id: 1, name: 'Copa Funes', clubId: 'club-padel-norte', clubName: 'Club del Padel Norte', courtId: '1', date: '2026-09-12', from: '18:00', to: '20:00', court: 'Cancha 1', teams: 8, status: 'Abierta', budget: '$180.000' },
+  { id: 2, name: 'Liga local', clubId: 'padel-arena', clubName: 'Padel Arena', courtId: '2', date: '2026-09-18', from: '19:00', to: '21:00', court: 'Cancha 2', teams: 10, status: 'Confirmada', budget: '$220.000' },
+  { id: 3, name: 'Mini torneos', clubId: 'sunset-club', clubName: 'Sunset Club', courtId: '3', date: '2026-09-22', from: '20:00', to: '22:00', court: 'Cancha 3', teams: 6, status: 'Pendiente', budget: '$120.000' },
 ];
 
 const avatarOptions = {
@@ -201,31 +201,39 @@ const clubCourtSchedule = [
     id: 1,
     name: 'Cancha 1',
     status: 'Disponible',
-    week: { Lun: '18:00', Mar: '17:30', Mié: '19:00', Jue: '20:30', Vie: '18:30', Sáb: '09:30', Dom: '10:00' },
+    week: {
+      Lun: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '10:00 - 11:30', status: 'Reservada' }, { time: '13:00 - 15:00', status: 'Disponible' }],
+      Mar: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '12:00 - 13:30', status: 'Clase' }, { time: '18:00 - 19:30', status: 'Disponible' }],
+      Mié: [{ time: '08:30 - 10:00', status: 'Reservada' }, { time: '14:00 - 15:00', status: 'Disponible' }, { time: '19:00 - 20:30', status: 'Torneo' }],
+      Jue: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '11:00 - 12:30', status: 'Reservada' }, { time: '20:30 - 22:00', status: 'Disponible' }],
+      Vie: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '10:00 - 11:30', status: 'Reservada' }, { time: '18:30 - 20:00', status: 'Disponible' }],
+      Sáb: [{ time: '09:30 - 11:00', status: 'Disponible' }, { time: '16:00 - 17:30', status: 'Reservada' }],
+      Dom: [{ time: '10:00 - 11:30', status: 'Disponible' }, { time: '18:00 - 19:30', status: 'Disponible' }],
+    },
   },
   {
     id: 2,
     name: 'Cancha 2',
     status: 'Reservada',
-    week: { Lun: '20:00', Mar: '18:30', Mié: '19:30', Jue: '21:00', Vie: '20:00', Sáb: '11:00', Dom: '12:00' },
+    week: { Lun: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '20:00 - 21:30', status: 'Reservada' }], Mar: [{ time: '09:00 - 10:30', status: 'Reservada' }, { time: '18:30 - 20:00', status: 'Disponible' }], Mié: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '19:30 - 21:00', status: 'Reservada' }], Jue: [{ time: '12:00 - 13:30', status: 'Clase' }, { time: '21:00 - 22:30', status: 'Disponible' }], Vie: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '20:00 - 21:30', status: 'Reservada' }], Sáb: [{ time: '11:00 - 12:30', status: 'Disponible' }], Dom: [{ time: '12:00 - 13:30', status: 'Disponible' }] },
   },
   {
     id: 3,
     name: 'Cancha 3',
     status: 'Disponible',
-    week: { Lun: '17:30', Mar: '19:00', Mié: '18:00', Jue: '19:30', Vie: '20:30', Sáb: '08:30', Dom: '09:00' },
+    week: { Lun: [{ time: '08:30 - 10:00', status: 'Reservada' }, { time: '17:30 - 19:00', status: 'Disponible' }], Mar: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '19:00 - 20:30', status: 'Clase' }], Mié: [{ time: '10:00 - 11:30', status: 'Disponible' }, { time: '18:00 - 19:30', status: 'Reservada' }], Jue: [{ time: '09:00 - 10:30', status: 'Disponible' }, { time: '19:30 - 21:00', status: 'Reservada' }], Vie: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '20:30 - 22:00', status: 'Reservada' }], Sáb: [{ time: '08:30 - 10:00', status: 'Disponible' }], Dom: [{ time: '09:00 - 10:30', status: 'Disponible' }] },
   },
   {
     id: 4,
     name: 'Cancha 4',
     status: 'Mantenimiento',
-    week: { Lun: 'libre', Mar: 'libre', Mié: '19:00', Jue: 'libre', Vie: '18:00', Sáb: 'libre', Dom: 'libre' },
+    week: { Lun: [{ time: '07:00 - 23:00', status: 'Mantenimiento' }], Mar: [{ time: '07:00 - 23:00', status: 'Mantenimiento' }], Mié: [{ time: '07:00 - 09:00', status: 'Mantenimiento' }, { time: '19:00 - 20:30', status: 'Mantenimiento' }], Jue: [{ time: '07:00 - 23:00', status: 'Mantenimiento' }], Vie: [{ time: '07:00 - 18:00', status: 'Mantenimiento' }, { time: '18:00 - 23:00', status: 'Disponible' }], Sáb: [{ time: '07:00 - 23:00', status: 'Mantenimiento' }], Dom: [{ time: '07:00 - 23:00', status: 'Mantenimiento' }] },
   },
   {
     id: 5,
     name: 'Cancha 5',
     status: 'Disponible',
-    week: { Lun: '20:00', Mar: '21:00', Mié: '18:30', Jue: '20:00', Vie: '19:00', Sáb: '10:00', Dom: '11:00' },
+    week: { Lun: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '20:00 - 21:30', status: 'Reservada' }], Mar: [{ time: '11:00 - 12:30', status: 'Disponible' }, { time: '21:00 - 22:30', status: 'Reservada' }], Mié: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '18:30 - 20:00', status: 'Clase' }], Jue: [{ time: '10:00 - 11:30', status: 'Disponible' }, { time: '20:00 - 21:30', status: 'Reservada' }], Vie: [{ time: '07:00 - 08:30', status: 'Disponible' }, { time: '19:00 - 20:30', status: 'Reservada' }], Sáb: [{ time: '10:00 - 11:30', status: 'Disponible' }], Dom: [{ time: '11:00 - 12:30', status: 'Disponible' }] },
   },
 ];
 
@@ -286,6 +294,13 @@ const userThemes = [
 
 function App() {
   const [selectedRole, setSelectedRole] = useState(null);
+  const [authenticatedUser, setAuthenticatedUser] = useState(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authRole, setAuthRole] = useState('jugador');
+  const [authMode, setAuthMode] = useState('login');
+  const [authError, setAuthError] = useState('');
   const [selectedClubId, setSelectedClubId] = useState(null);
   const [trainerServiceClubs, setTrainerServiceClubs] = useState([]);
   const [selectedTheme, setSelectedTheme] = useState('rosa');
@@ -334,6 +349,21 @@ function App() {
   const [tournamentInviteId, setTournamentInviteId] = useState(null);
   const [tournamentInvitePlayerId, setTournamentInvitePlayerId] = useState('');
   const [tournamentNotice, setTournamentNotice] = useState('');
+  const [showTournamentForm, setShowTournamentForm] = useState(false);
+  const [tournamentDraft, setTournamentDraft] = useState({
+    name: '', clubId: 'club-padel-norte', courtId: '1', date: '2026-09-12', from: '18:00', to: '20:00',
+  });
+  const [tournamentEventsList, setTournamentEventsList] = useState(tournamentEvents);
+  const [calendarStatusFilter, setCalendarStatusFilter] = useState('Todos');
+  const [calendarView, setCalendarView] = useState('Día');
+  const [calendarDate, setCalendarDate] = useState('2026-09-04');
+  const [calendarSchedule, setCalendarSchedule] = useState(clubCourtSchedule);
+  const [maintenanceDraft, setMaintenanceDraft] = useState({ courtId: '4', date: '2026-09-04', from: '14:00', to: '16:00' });
+  const [apiReservations, setApiReservations] = useState([]);
+  const [isClubEditing, setIsClubEditing] = useState(false);
+  const [clubProfileDraft, setClubProfileDraft] = useState({ name: '', city: '', address: '', phone: '' });
+  const [apiReservationsLoaded, setApiReservationsLoaded] = useState(false);
+  const [hasLocalCalendarChanges, setHasLocalCalendarChanges] = useState(false);
 
   const avatarSet = avatarOptions[selectedTheme] || avatarOptions.rosa;
   const selectedAvatar = avatarSet.find((avatar) => avatar.id === selectedAvatarId) || avatarSet[0];
@@ -366,7 +396,100 @@ function App() {
   const visiblePlayers = players.filter((player) =>
     (selectedGender === 'mixto' || player.gender === selectedGender) && player.level === selectedPlayerLevel
   );
+  const visibleCalendarCourts = calendarSchedule.filter((court) =>
+    calendarStatusFilter === 'Todos' || court.status === calendarStatusFilter
+  );
+  const calendarDayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const selectedCalendarDay = calendarDayLabels[new Date(`${calendarDate}T12:00:00`).getDay()];
+  const useRealCalendarData = selectedRole === 'club' && Boolean(selectedClubId) && !hasLocalCalendarChanges;
+  const calendarBaseSchedule = useRealCalendarData
+    ? calendarSchedule.map((court) => ({
+        ...court,
+        week: Object.fromEntries(calendarDayLabels.map((day) => [day, []])),
+      }))
+    : calendarSchedule;
+  const calendarScheduleWithReservations = calendarBaseSchedule.map((court) => {
+    const reservations = apiReservations.filter((reservation) =>
+      Number(reservation.cancha_id) === court.id && String(reservation.fecha).slice(0, 10) === calendarDate
+    );
+    if (!reservations.length) return court;
+
+    return {
+      ...court,
+      week: {
+        ...court.week,
+        [selectedCalendarDay]: [
+          ...(court.week[selectedCalendarDay] || []),
+          ...reservations.map((reservation) => ({
+            time: reservation.hora,
+            status: reservation.estado === 'Confirmada' ? 'Reservada' : reservation.estado,
+          })),
+        ],
+      },
+    };
+  });
+  const visibleCalendarCourtsWithReservations = calendarScheduleWithReservations.filter((court) =>
+    calendarStatusFilter === 'Todos'
+    || court.status === calendarStatusFilter
+    || court.week[selectedCalendarDay]?.some((slot) => slot.status === calendarStatusFilter)
+  );
+  const calendarCourtsByBlockStatus = calendarScheduleWithReservations
+    .map((court) => ({
+      ...court,
+      week: Object.fromEntries(Object.entries(court.week).map(([day, slots]) => [
+        day,
+        slots.filter((slot) => calendarStatusFilter === 'Todos' || slot.status === calendarStatusFilter),
+      ])),
+    }))
+    .filter((court) => calendarView === 'Semana'
+      ? Object.values(court.week).some((slots) => slots.length > 0)
+      : court.week[selectedCalendarDay]?.length > 0);
   const nearbyPoolPlayers = visiblePlayers.filter((player) => player.distanceKm <= 10);
+
+  const addMaintenanceBlock = () => {
+    const day = calendarDayLabels[new Date(`${maintenanceDraft.date}T12:00:00`).getDay()];
+    setCalendarSchedule((current) => current.map((court) => {
+      if (String(court.id) !== maintenanceDraft.courtId) return court;
+
+      return {
+        ...court,
+        status: 'Mantenimiento',
+        week: {
+          ...court.week,
+          [day]: [
+            ...court.week[day],
+            { time: `${maintenanceDraft.from} - ${maintenanceDraft.to}`, status: 'Mantenimiento' },
+          ],
+        },
+      };
+    }));
+    setCalendarDate(maintenanceDraft.date);
+    setCalendarView('Día');
+    setHasLocalCalendarChanges(true);
+    setActiveTab('Inicio');
+  };
+
+  useEffect(() => {
+    if (selectedRole !== 'club' || !selectedClubId) return;
+
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) return;
+
+    setApiReservationsLoaded(false);
+
+    fetch(`/api/reservas?club_id=${encodeURIComponent(selectedClubId)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((response) => response.ok ? response.json() : [])
+      .then((reservas) => {
+        setApiReservations(reservas);
+        setApiReservationsLoaded(true);
+      })
+      .catch(() => {
+        setApiReservations([]);
+        setApiReservationsLoaded(true);
+      });
+  }, [authenticatedUser, selectedRole, selectedClubId]);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -415,6 +538,23 @@ function App() {
     );
   };
 
+  const formatHourlyPrice = (value) => {
+    const digits = String(value).replace(/\D/g, '');
+    if (!digits) return '';
+
+    return `$${Number(digits).toLocaleString('es-AR')}/h`;
+  };
+
+  const updateCourtPrice = (courtId, nextPrice) => {
+    setCourtStates((current) =>
+      current.map((court) => (court.id === courtId ? { ...court, price: formatHourlyPrice(nextPrice) } : court))
+    );
+  };
+
+  const updateCourtRate = (courtId, field, value) => {
+    setCourtStates((current) => current.map((court) => court.id === courtId ? { ...court, [field]: formatHourlyPrice(value) } : court));
+  };
+
   const handleReserveClick = () => {
     const newMatch = {
       id: Date.now(),
@@ -453,11 +593,72 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('zonapadel_token');
+    setAuthenticatedUser(null);
+    setApiReservations([]);
+    setApiReservationsLoaded(false);
+    setAuthEmail('');
+    setAuthPassword('');
     setSelectedRole(null);
     setSelectedClubId(null);
     setTrainerServiceClubs([]);
     setActiveTab('Inicio');
     setSelectedCourt(courts[0]);
+  };
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: authEmail, password: authPassword }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAuthError(data.message || 'No se pudo iniciar sesión');
+        return;
+      }
+
+      localStorage.setItem('zonapadel_token', data.token);
+      setAuthenticatedUser({ ...data.user, token: data.token });
+      setSelectedRole(data.user.rol);
+      if (data.user.club_id && clubs.some((club) => club.id === data.user.club_id)) {
+        setSelectedClubId(data.user.club_id);
+      }
+    } catch (error) {
+      setAuthError('No se pudo conectar con el servidor');
+    }
+  };
+
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+
+    try {
+      const response = await fetch('/api/auth/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: authName, email: authEmail, password: authPassword, rol: authRole }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAuthError(data.message || 'No se pudo crear la cuenta');
+        return;
+      }
+
+      localStorage.setItem('zonapadel_token', data.token);
+      setAuthenticatedUser({ ...data.user, token: data.token });
+      setSelectedRole(data.user.rol);
+      setAuthMode('login');
+      if (data.user.rol !== 'club') setActiveTab('Inicio');
+    } catch (error) {
+      setAuthError('No se pudo conectar con el servidor');
+    }
   };
 
   const toggleTrainerClub = (clubId) => {
@@ -646,6 +847,33 @@ function App() {
         }
       : tournament));
     setTournamentNotice('Inscripción al torneo cancelada.');
+  };
+
+  const createTournament = () => {
+    const { name, clubId, courtId, date, from, to } = tournamentDraft;
+    if (!name || !date || !from || !to || from >= to) {
+      setTournamentNotice('Completá nombre, día y un horario válido.');
+      return;
+    }
+
+    const conflict = tournamentEventsList.some((event) =>
+      event.clubId === clubId && String(event.courtId) === String(courtId)
+      && event.date === date && event.from < to && event.to > from
+    );
+    if (conflict) {
+      setTournamentNotice('La cancha ya está bloqueada por otro torneo en ese horario.');
+      return;
+    }
+
+    const club = clubs.find((item) => item.id === clubId);
+    const court = courts.find((item) => String(item.id) === String(courtId));
+    setTournamentEventsList((current) => [{
+      id: Date.now(), name, clubId, courtId, date, from, to,
+      displayDate: new Date(`${date}T12:00:00`).toLocaleDateString('es-AR'),
+      court: court?.name || 'Cancha', teams: 0, status: 'Pendiente', clubName: club?.name || clubId,
+    }, ...current]);
+    setTournamentNotice('Torneo creado y cancha bloqueada.');
+    setShowTournamentForm(false);
   };
 
   const invitePlayerToTournament = () => {
@@ -1584,15 +1812,48 @@ function App() {
             <section className="panel">
               <div className="section-header">
                 <h3>Eventos del torneo</h3>
-                <button type="button" className="link-btn">Crear</button>
+                <button type="button" className="link-btn" onClick={() => setShowTournamentForm((current) => !current)}>
+                  {showTournamentForm ? 'Cerrar' : 'Crear'}
+                </button>
               </div>
 
+              {showTournamentForm ? (
+                <div className="tournament-form">
+                  <label>Nombre del torneo
+                    <input value={tournamentDraft.name} onChange={(event) => setTournamentDraft((current) => ({ ...current, name: event.target.value }))} placeholder="Ej.: Copa Primavera" />
+                  </label>
+                  <label>Club
+                    <select value={tournamentDraft.clubId} onChange={(event) => setTournamentDraft((current) => ({ ...current, clubId: event.target.value }))}>
+                      {clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}
+                    </select>
+                  </label>
+                  <label>Cancha
+                    <select value={tournamentDraft.courtId} onChange={(event) => setTournamentDraft((current) => ({ ...current, courtId: event.target.value }))}>
+                      {courts.filter((court) => court.clubId === tournamentDraft.clubId).map((court) => <option key={court.id} value={court.id}>{court.name}</option>)}
+                    </select>
+                  </label>
+                  <label>Día
+                    <input type="date" value={tournamentDraft.date} onChange={(event) => setTournamentDraft((current) => ({ ...current, date: event.target.value }))} />
+                  </label>
+                  <label>Desde
+                    <input type="time" value={tournamentDraft.from} onChange={(event) => setTournamentDraft((current) => ({ ...current, from: event.target.value }))} />
+                  </label>
+                  <label>Hasta
+                    <input type="time" value={tournamentDraft.to} onChange={(event) => setTournamentDraft((current) => ({ ...current, to: event.target.value }))} />
+                  </label>
+                  <button type="button" className="primary-btn small-btn" onClick={createTournament}>Verificar y crear</button>
+                </div>
+              ) : null}
+
+              {tournamentNotice ? <p className="training-notice" role="status">{tournamentNotice}</p> : null}
+
               <div className="booking-list">
-                {tournamentEvents.map((event) => (
+                {tournamentEventsList.map((event) => (
                   <div key={event.id} className="booking-row">
                     <div>
                       <strong>{event.name}</strong>
-                      <p>{event.date} · {event.court}</p>
+                      <p>{event.displayDate || event.date} · {event.court}</p>
+                      {event.from ? <small>{event.from} - {event.to} · {event.clubName}</small> : null}
                     </div>
                     <span>{event.teams} equipos</span>
                     <span className="booking-status pendiente">{event.status}</span>
@@ -1696,6 +1957,34 @@ function App() {
                       />
                     </label>
 
+                    <label className="opening-hours-field" htmlFor={`court-price-${court.id}`}>
+                      <span>Costo por hora</span>
+                      <input
+                        id={`court-price-${court.id}`}
+                        value={court.price || ''}
+                        onChange={(event) => updateCourtPrice(court.id, event.target.value)}
+                        inputMode="decimal"
+                      />
+                    </label>
+
+                    <div className="court-rate-grid">
+                      {[
+                        ['precio_partido', 'Costo partido'],
+                        ['precio_clase', 'Costo clase'],
+                        ['precio_torneo', 'Costo torneo'],
+                      ].map(([field, label]) => (
+                        <label key={field} className="opening-hours-field" htmlFor={`${field}-${court.id}`}>
+                          <span>{label}</span>
+                          <input
+                            id={`${field}-${court.id}`}
+                            value={court[field] || court.price || ''}
+                            onChange={(event) => updateCourtRate(court.id, field, event.target.value)}
+                            inputMode="decimal"
+                          />
+                        </label>
+                      ))}
+                    </div>
+
                     <div className="club-actions">
                       {['Abierta', 'Semicerrada', 'Cerrada'].map((status) => (
                         <button
@@ -1711,6 +2000,29 @@ function App() {
                   </div>
                 ))}
               </div>
+
+              <div className="maintenance-form">
+                <div className="section-header">
+                  <h3>Programar mantenimiento</h3>
+                </div>
+                <div className="maintenance-fields">
+                  <label>Cancha
+                    <select value={maintenanceDraft.courtId} onChange={(event) => setMaintenanceDraft((current) => ({ ...current, courtId: event.target.value }))}>
+                      {rankedCourtStates.map((court) => <option key={court.id} value={court.id}>{court.name}</option>)}
+                    </select>
+                  </label>
+                  <label>Fecha
+                    <input type="date" value={maintenanceDraft.date} onChange={(event) => setMaintenanceDraft((current) => ({ ...current, date: event.target.value }))} />
+                  </label>
+                  <label>Desde
+                    <input type="time" value={maintenanceDraft.from} onChange={(event) => setMaintenanceDraft((current) => ({ ...current, from: event.target.value }))} />
+                  </label>
+                  <label>Hasta
+                    <input type="time" value={maintenanceDraft.to} onChange={(event) => setMaintenanceDraft((current) => ({ ...current, to: event.target.value }))} />
+                  </label>
+                </div>
+                <button type="button" className="primary-btn small-btn" onClick={addMaintenanceBlock}>Agregar mantenimiento</button>
+              </div>
             </section>
           </div>
         );
@@ -1724,7 +2036,14 @@ function App() {
               </div>
 
               <div className="booking-list">
-                {selectedClubBookings.map((booking) => (
+                {(selectedRole === 'club' ? apiReservations.map((reservation) => ({
+                  id: reservation.id,
+                  player: reservation.jugador_nombre || 'Jugador registrado',
+                  court: reservation.cancha_nombre,
+                  time: reservation.hora,
+                  status: reservation.estado,
+                  amount: reservation.monto || '-',
+                })) : selectedClubBookings).map((booking) => (
                   <div key={booking.id} className="booking-row">
                     <div>
                       <strong>{booking.player}</strong>
@@ -1734,6 +2053,9 @@ function App() {
                     <strong className="booking-price">{booking.amount}</strong>
                   </div>
                 ))}
+                {selectedRole === 'club' && (!authenticatedUser || apiReservationsLoaded) && apiReservations.length === 0 ? (
+                  <p className="empty-state">No hay reservas registradas en MySQL para este club.</p>
+                ) : null}
               </div>
             </section>
           </div>
@@ -1780,7 +2102,21 @@ function App() {
             <section className="panel">
               <div className="section-header">
                 <h3>Club</h3>
-                <button type="button" className="link-btn">Editar</button>
+                <button
+                  type="button"
+                  className="link-btn"
+                  onClick={() => {
+                    setClubProfileDraft({
+                      name: selectedClub.name,
+                      city: selectedClub.city,
+                      address: selectedClub.address,
+                      phone: selectedClub.phone || '',
+                    });
+                    setIsClubEditing((current) => !current);
+                  }}
+                >
+                  {isClubEditing ? 'Cerrar edición' : 'Editar'}
+                </button>
               </div>
 
               <div className="club-profile">
@@ -1791,6 +2127,15 @@ function App() {
                   <small>{selectedClub.city} · Vence: 30/09/2026</small>
                 </div>
               </div>
+              {isClubEditing ? (
+                <div className="club-profile-form">
+                  <label>Nombre<input value={clubProfileDraft.name} onChange={(event) => setClubProfileDraft((current) => ({ ...current, name: event.target.value }))} /></label>
+                  <label>Ciudad<input value={clubProfileDraft.city} onChange={(event) => setClubProfileDraft((current) => ({ ...current, city: event.target.value }))} /></label>
+                  <label>Dirección<input value={clubProfileDraft.address} onChange={(event) => setClubProfileDraft((current) => ({ ...current, address: event.target.value }))} /></label>
+                  <label>Teléfono<input value={clubProfileDraft.phone} onChange={(event) => setClubProfileDraft((current) => ({ ...current, phone: event.target.value }))} /></label>
+                  <button type="button" className="primary-btn small-btn" onClick={() => setIsClubEditing(false)}>Guardar datos</button>
+                </div>
+              ) : null}
             </section>
           </div>
         );
@@ -1829,27 +2174,65 @@ function App() {
             <section className="panel">
               <div className="section-header">
                 <h3>Calendario por cancha · {selectedClub.name}</h3>
-                <button type="button" className="link-btn">Ver todas</button>
+                <label className="calendar-status-filter">
+                  <span>Vista</span>
+                  <select value={calendarView} onChange={(event) => setCalendarView(event.target.value)} aria-label="Vista del calendario">
+                    <option value="Día">Día</option>
+                    <option value="Semana">Semana</option>
+                  </select>
+                </label>
+                {calendarView === 'Día' ? (
+                  <label className="calendar-status-filter">
+                    <span>Fecha</span>
+                    <input type="date" value={calendarDate} onChange={(event) => setCalendarDate(event.target.value)} aria-label="Fecha del calendario" />
+                  </label>
+                ) : null}
+                <label className="calendar-status-filter">
+                  <span>Ver</span>
+                  <select value={calendarStatusFilter} onChange={(event) => setCalendarStatusFilter(event.target.value)} aria-label="Estado del calendario">
+                    <option value="Todos">Todos los estados</option>
+                    <option value="Disponible">Disponibles</option>
+                    <option value="Reservada">Reservadas</option>
+                    <option value="Cumplida">Cumplidas</option>
+                    <option value="Cancelada">Canceladas</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Torneo">Torneos</option>
+                    <option value="Clase">Clases</option>
+                  </select>
+                </label>
               </div>
 
               <div className="court-calendar-grid">
-                {clubCourtSchedule.map((court) => (
+                {calendarCourtsByBlockStatus.map((court) => (
                   <div key={court.id} className="court-calendar-card">
                     <div className="court-calendar-header">
                       <strong>{court.name}</strong>
                       <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>{court.status}</span>
                     </div>
                     <div className="calendar-days">
-                      {Object.entries(court.week).map(([day, slot]) => (
-                        <div key={`${court.id}-${day}`} className={slot === 'libre' ? 'day-pill free' : 'day-pill busy'}>
-                          <span>{day}</span>
-                          <small>{slot === 'libre' ? 'Libre' : slot}</small>
-                        </div>
-                      ))}
+                      {Object.entries(court.week)
+                        .filter(([day]) => calendarView === 'Semana' || day === selectedCalendarDay)
+                        .map(([day, slots]) => (
+                          <div key={`${court.id}-${day}`} className="calendar-day-column">
+                            <span className="calendar-day-label">{day}</span>
+                            {slots.map((slot) => (
+                              <div
+                                key={`${court.id}-${day}-${slot.time}`}
+                                className={`day-pill ${slot.status.toLowerCase().replace(/\s+/g, '-')}`}
+                              >
+                                <small>{slot.time}</small>
+                                <span>{slot.status}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
                     </div>
                   </div>
                 ))}
               </div>
+              {useRealCalendarData && (!authenticatedUser || apiReservationsLoaded) && calendarCourtsByBlockStatus.length === 0 ? (
+                <p className="empty-state">No hay reservas de MySQL para esta fecha y estado.</p>
+              ) : null}
             </section>
           </div>
         );
@@ -1870,6 +2253,37 @@ function App() {
               <h1>Tu red de pádel</h1>
             </div>
           </div>
+
+          {!selectedRole && !isClubSelector && !isTrainerClubSelector ? (
+            <form className="login-form" onSubmit={authMode === 'login' ? handleLogin : handleRegister}>
+              {authMode === 'register' ? (
+                <label>Nombre
+                  <input value={authName} onChange={(event) => setAuthName(event.target.value)} required />
+                </label>
+              ) : null}
+              <label>Email
+                <input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} required />
+              </label>
+              <label>Contraseña
+                <input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} required />
+              </label>
+              {authMode === 'register' ? (
+                <label>Ingresar como
+                  <select value={authRole} onChange={(event) => setAuthRole(event.target.value)}>
+                    <option value="jugador">Jugador</option>
+                    <option value="club">Club</option>
+                    <option value="entrenador">Entrenador</option>
+                    <option value="torneos">Organizador de torneos</option>
+                  </select>
+                </label>
+              ) : null}
+              <button type="submit" className="primary-btn">{authMode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</button>
+              {authError ? <p className="auth-error" role="alert">{authError}</p> : null}
+              <button type="button" className="link-btn auth-switch" onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setAuthError(''); }}>
+                {authMode === 'login' ? 'Crear una cuenta' : 'Ya tengo una cuenta'}
+              </button>
+            </form>
+          ) : null}
 
           <h2>{isClubSelector ? 'Elegí tu club' : isTrainerClubSelector ? 'Elegí los clubes donde trabajás' : '¿Cómo quieres entrar?'}</h2>
           <p className="subtitle">

@@ -12,6 +12,16 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /Soy entrenador/i })).toBeInTheDocument();
   });
 
+  it('shows the user registration form', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Crear una cuenta' }));
+
+    expect(screen.getByRole('textbox', { name: 'Nombre' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Ingresar como' })).toHaveValue('jugador');
+    expect(screen.getByRole('button', { name: 'Crear cuenta' })).toBeInTheDocument();
+  });
+
   it('opens the selected search filters directly', () => {
     render(<App />);
 
@@ -83,6 +93,33 @@ describe('App', () => {
     expect(screen.getByText(/Apertura: Abierta.*03\/09\/2026/)).toBeInTheDocument();
   });
 
+  it('creates a tournament with club, court, day, and time block', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Torneos/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Torneos' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Crear' }));
+    fireEvent.change(screen.getByLabelText('Nombre del torneo'), { target: { value: 'Copa Primavera' } });
+    fireEvent.change(screen.getByLabelText('Día'), { target: { value: '2026-10-10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar y crear' }));
+
+    expect(screen.getByText('Copa Primavera')).toBeInTheDocument();
+    expect(screen.getByText('Torneo creado y cancha bloqueada.')).toBeInTheDocument();
+  });
+
+  it('rejects a tournament block that overlaps an existing one', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Torneos/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Torneos' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Crear' }));
+    fireEvent.change(screen.getByLabelText('Nombre del torneo'), { target: { value: 'Bloque ocupado' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar y crear' }));
+
+    expect(screen.getByText('La cancha ya está bloqueada por otro torneo en ese horario.')).toBeInTheDocument();
+    expect(screen.queryByText('Bloque ocupado')).not.toBeInTheDocument();
+  });
+
   it('does not allow joining the same training twice', () => {
     render(<App />);
 
@@ -134,11 +171,11 @@ describe('App', () => {
 
     expect(screen.getAllByText('16 plazas totales').length).toBeGreaterThan(0);
     expect(screen.getByText('8 disponibles')).toBeInTheDocument();
-    expect(screen.getByText('18:00 - 20:00')).toBeInTheDocument();
+    expect(screen.getAllByText('18:00 - 20:00').length).toBeGreaterThan(0);
     expect(screen.getByText(/Lucía P\., Mateo G\./)).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Sumarme' })[0]);
-    expect(screen.getAllByRole('button', { name: 'Ya estás inscripto' })[0]).toBeDisabled();
+    expect(screen.getAllByRole('button', { name: 'Cancelar inscripción' })[0]).toBeEnabled();
     expect(screen.getByText('7 disponibles')).toBeInTheDocument();
     expect(screen.getByText(/Vos/)).toBeInTheDocument();
   });
@@ -171,5 +208,67 @@ describe('App', () => {
     expect(decodeURIComponent(openSpy.mock.calls[0][0])).toContain('Copa Funes');
     expect(decodeURIComponent(openSpy.mock.calls[0][0])).toContain('Club del Padel Norte');
     openSpy.mockRestore();
+  });
+
+  it('filters the club calendar by status', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy club/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Club del Padel Norte/ }));
+    expect(screen.getByRole('combobox', { name: 'Vista del calendario' })).toHaveValue('Día');
+    expect(screen.getByLabelText('Fecha del calendario')).toHaveValue('2026-09-04');
+    expect(screen.getByText('No hay reservas de MySQL para esta fecha y estado.')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Vista del calendario' }), { target: { value: 'Semana' } });
+    expect(screen.getByText('No hay reservas de MySQL para esta fecha y estado.')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Estado del calendario' }), { target: { value: 'Mantenimiento' } });
+
+    expect(screen.getByText('No hay reservas de MySQL para esta fecha y estado.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Estado del calendario' }), { target: { value: 'Reservada' } });
+    expect(screen.getByText('No hay reservas de MySQL para esta fecha y estado.')).toBeInTheDocument();
+  });
+
+  it('allows the club to edit the individual court price', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy club/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Club del Padel Norte/ }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Canchas' })[0]);
+    const priceInput = screen.getAllByLabelText('Costo por hora')[0];
+    fireEvent.change(priceInput, { target: { value: '30000' } });
+
+    expect(priceInput).toHaveValue('$30.000/h');
+  });
+
+  it('opens the club data editor', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy club/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Club del Padel Norte/ }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Perfil' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+
+    expect(screen.getByRole('textbox', { name: 'Nombre' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Ciudad' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Dirección' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Teléfono' })).toBeInTheDocument();
+  });
+
+  it('allows the club to schedule maintenance for a court and time range', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy club/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Club del Padel Norte/ }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Canchas' })[0]);
+    fireEvent.change(screen.getByLabelText('Cancha'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '2026-09-04' } });
+    fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '14:00' } });
+    fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '16:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar mantenimiento' }));
+
+    expect(screen.getByRole('combobox', { name: 'Vista del calendario' })).toHaveValue('Día');
+    expect(screen.getByLabelText('Fecha del calendario')).toHaveValue('2026-09-04');
+    expect(screen.getByText('14:00 - 16:00')).toBeInTheDocument();
+    expect(screen.getAllByText('Mantenimiento').length).toBeGreaterThan(0);
   });
 });

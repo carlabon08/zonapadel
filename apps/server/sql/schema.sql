@@ -29,6 +29,9 @@ CREATE TABLE IF NOT EXISTS canchas (
   nombre VARCHAR(80) NOT NULL,
   superficie VARCHAR(120),
   precio VARCHAR(40),
+  precio_partido VARCHAR(40),
+  precio_clase VARCHAR(40),
+  precio_torneo VARCHAR(40),
   estado ENUM('Abierta', 'Semicerrada', 'Cerrada') DEFAULT 'Abierta',
   horario_apertura VARCHAR(60) DEFAULT '08:00 - 22:00',
   FOREIGN KEY (club_id) REFERENCES clubes(id) ON DELETE CASCADE

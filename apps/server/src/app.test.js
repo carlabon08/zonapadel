@@ -306,6 +306,10 @@ describe('PATCH /api/canchas/:id', () => {
       .send({
         estado: 'Semicerrada',
         horario_apertura: '09:00 - 21:00',
+        precio: '$25.000/h',
+        precio_partido: '$25.000/h',
+        precio_clase: '$28.000/h',
+        precio_torneo: '$32.000/h',
       });
 
     expect(response.status).toBe(200);
@@ -313,6 +317,10 @@ describe('PATCH /api/canchas/:id', () => {
       id: 1,
       estado: 'Semicerrada',
       horario_apertura: '09:00 - 21:00',
+      precio: '$25.000/h',
+      precio_partido: '$25.000/h',
+      precio_clase: '$28.000/h',
+      precio_torneo: '$32.000/h',
     });
   });
 });

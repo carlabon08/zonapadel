@@ -155,6 +155,39 @@ h3 {
   color: #fff;
 }
 
+.login-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.login-form label {
+  display: grid;
+  gap: 6px;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.login-form input {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fffdf9;
+  color: var(--ink);
+}
+
+.auth-error {
+  margin: 0;
+  color: #ffd4d4;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .subtitle {
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 26px;
@@ -794,6 +827,69 @@ h3 {
   margin-bottom: 16px;
 }
 
+.calendar-status-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.calendar-status-filter select {
+  border: 1px solid rgba(138,95,70,0.2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fffdf9;
+  color: var(--ink);
+  font: inherit;
+}
+
+.calendar-status-filter input {
+  border: 1px solid rgba(138,95,70,0.2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fffdf9;
+  color: var(--ink);
+  font: inherit;
+}
+
+.club-profile-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(138,95,70,0.14);
+}
+
+.club-profile-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.club-profile-form input {
+  width: 100%;
+  border: 1px solid rgba(138,95,70,0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fffdf9;
+  color: var(--ink);
+}
+
+.club-profile-form .primary-btn {
+  align-self: end;
+}
+
+.empty-state {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .link-btn {
   border: none;
   background: transparent;
@@ -953,6 +1049,45 @@ h3 {
 .opening-hours-field span {
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+.court-rate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.maintenance-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(138,95,70,0.16);
+}
+
+.maintenance-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.maintenance-fields label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.maintenance-fields input,
+.maintenance-fields select {
+  width: 100%;
+  border: 1px solid rgba(138,95,70,0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fffdf9;
+  color: var(--ink);
 }
 
 .opening-hours-field input {
@@ -1136,6 +1271,19 @@ h3 {
   gap: 8px;
 }
 
+.calendar-day-column {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.calendar-day-label {
+  color: #f3fff8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
 .day-pill {
   display: grid;
   gap: 4px;
@@ -1162,6 +1310,23 @@ h3 {
 .day-pill.busy {
   background: rgba(145, 160, 255, 0.15);
   color: #dfe7ff;
+}
+
+.day-pill.disponible {
+  background: rgba(130, 180, 128, 0.12);
+  color: #d7fbe0;
+}
+
+.day-pill.reservada,
+.day-pill.clase,
+.day-pill.torneo {
+  background: rgba(145, 160, 255, 0.15);
+  color: #dfe7ff;
+}
+
+.day-pill.mantenimiento {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fff0c2;
 }
 
 .club-banner {
@@ -1672,6 +1837,38 @@ h3 {
   line-height: 1.35;
 }
 
+.tournament-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f4eadf;
+}
+
+.tournament-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tournament-form input,
+.tournament-form select {
+  width: 100%;
+  border: 1px solid rgba(138,95,70,0.2);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: #fffdf9;
+  color: var(--ink);
+}
+
+.tournament-form .primary-btn {
+  align-self: end;
+}
+
 .tournament-invite {
   display: grid;
   grid-column: 1 / -1;
@@ -1828,6 +2025,18 @@ h3 {
   }
 
   .tournament-card {
+    grid-template-columns: 1fr;
+  }
+
+  .tournament-form {
+    grid-template-columns: 1fr;
+  }
+
+  .club-profile-form {
+    grid-template-columns: 1fr;
+  }
+
+  .maintenance-fields {
     grid-template-columns: 1fr;
   }
 
