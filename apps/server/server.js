@@ -6,6 +6,7 @@ import clubesRoutes from './src/routes/clubes.routes.js';
 import canchasRoutes from './src/routes/canchas.routes.js';
 import reservasRoutes from './src/routes/reservas.routes.js';
 import clasesRoutes from './src/routes/clases.routes.js';
+import partidosRoutes from './src/routes/partidos.routes.js';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use('/api/clubes', clubesRoutes);
 app.use('/api/canchas', canchasRoutes);
 app.use('/api/reservas', reservasRoutes);
 app.use('/api/clases', clasesRoutes);
+app.use('/api/partidos', partidosRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

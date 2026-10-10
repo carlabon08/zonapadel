@@ -20,6 +20,24 @@ const normalizeReserva = (reserva) => {
   };
 };
 
+router.get('/disponibilidad', requireAuth, async (req, res) => {
+  const { cancha_id, fecha, hora } = req.query;
+  if (!cancha_id || !fecha || !hora) {
+    return res.status(400).json({ message: 'Faltan cancha, fecha u hora' });
+  }
+
+  const reservas = await query(
+    `SELECT id FROM reservas
+     WHERE cancha_id = ? AND fecha = ? AND hora = ? AND estado != 'Cancelada'
+     UNION ALL
+     SELECT id FROM partidos
+     WHERE cancha_id = ? AND fecha = ? AND hora = ? AND estado = 'Buscando rival'
+     LIMIT 1`,
+    [cancha_id, fecha, hora, cancha_id, fecha, hora]
+  );
+  return res.json({ available: reservas.length === 0 });
+});
+
 router.get('/', requireAuth, async (req, res) => {
   const { club_id } = req.query;
 

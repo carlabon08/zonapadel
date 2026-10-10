@@ -1,6 +1,43 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import App from './App';
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+const mockAuthenticatedPlayer = () => {
+  localStorage.setItem('zonapadel_token', 'test-player-token');
+  const fetchMock = vi.fn((url, options = {}) => {
+    const method = options.method || 'GET';
+    const jsonResponse = (body, status = 200) => Promise.resolve({ ok: status < 400, status, json: async () => body });
+
+    if (url === '/api/partidos' && method === 'GET') return jsonResponse([]);
+    if (url === '/api/partidos' && method === 'POST') {
+      const body = JSON.parse(options.body);
+      return jsonResponse({
+        id: 44,
+        ...body,
+        cancha: 'Cancha 1',
+        ciudad: 'Funes',
+        jugadores_faltantes: 1,
+        estado: 'Buscando rival',
+        es_propio: true,
+      }, 201);
+    }
+    if (String(url).startsWith('/api/reservas/disponibilidad')) return jsonResponse({ available: true });
+    if (String(url).startsWith('/api/partidos/') && method === 'DELETE') {
+      return Promise.resolve({ ok: true, status: 204 });
+    }
+    return jsonResponse([]);
+  });
+
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+};
 
 describe('App', () => {
   it('renders the role selection screen', () => {
@@ -22,13 +59,26 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Crear cuenta' })).toBeInTheDocument();
   });
 
+  it('toggles password visibility on the authentication form', () => {
+    render(<App />);
+
+    const passwordInput = screen.getByLabelText('Contraseña');
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mostrar contraseña' }));
+    expect(passwordInput).toHaveAttribute('type', 'text');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar contraseña' }));
+    expect(passwordInput).toHaveAttribute('type', 'password');
+  });
+
   it('opens the selected search filters directly', () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
 
-    expect(screen.getByRole('heading', { name: 'Filtros de pool de partidos' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Pool de partidos' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Filtros de partidos' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Partidos' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Canchas' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Jugadores' })).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Género del partido' })).toHaveValue('femenino');
@@ -63,7 +113,7 @@ describe('App', () => {
     expect(screen.getByLabelText('Hora inicial')).toHaveValue('18:00');
     expect(screen.getByLabelText('Hora final')).toHaveValue('22:00');
     expect(screen.getAllByRole('heading', { name: 'Canchas disponibles' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('heading', { name: 'Pool de partidos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Partidos' })).not.toBeInTheDocument();
     expect(screen.getAllByText(/Club del Padel Norte/).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Abierta').length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText('Valoración 4.8 de 5 estrellas').length).toBeGreaterThan(0);
@@ -71,6 +121,112 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Inicio/ })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Ver mapa' }));
     expect(screen.getByRole('heading', { name: 'Mapa de canchas' })).toBeInTheDocument();
+  });
+
+  it('allows cancelling a match draft without publishing it', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
+    expect(screen.getByLabelText('Cancha del partido')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Club del Padel Norte · Cancha 1 · Abierta' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Club del Padel Norte · Cancha 3 · Cerrada' })).toBeDisabled();
+    expect(screen.getByLabelText('Categoría del partido')).toBeInTheDocument();
+    expect(screen.getByLabelText('Fecha del nuevo partido')).toBeInTheDocument();
+    expect(screen.getByLabelText('Hora del partido')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Publicar partido' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('button', { name: 'Publicar partido' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('Buscando rival')).toHaveLength(1);
+  });
+
+  it('requires login before persisting a match', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
+    fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
+    fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar partido' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Iniciá sesión para guardar');
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+    expect(screen.getByRole('textbox', { name: 'Email' })).toBeInTheDocument();
+  });
+
+  it('persists a match with its selected date and time', async () => {
+    const fetchMock = mockAuthenticatedPlayer();
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/partidos', expect.anything()));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
+    fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
+    fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar partido' }));
+
+    expect(await screen.findByText(/Cancha 1 · 5ta · 20\/10\/2026 · 20:00/)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith('/api/partidos', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('cancels a persisted match and removes it from active results', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const fetchMock = mockAuthenticatedPlayer();
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/partidos', expect.anything()));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
+    fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
+    fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar partido' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancelar partido en Cancha 1 el 20/10/2026' }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith('/api/partidos/44', expect.objectContaining({ method: 'DELETE' }));
+    await waitFor(() => expect(screen.queryByText(/Cancha 1 · 5ta · 20\/10\/2026 · 20:00/)).not.toBeInTheDocument());
+  });
+
+  it('opens an individual WhatsApp invitation with the match details for a selected player', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    const match = screen.getByText(/Funes · 6ta · 10\/10\/2026 · 18:30/).closest('.match-card');
+    fireEvent.click(within(match).getByRole('checkbox', { name: 'Delfi Brea' }));
+    fireEvent.click(within(match).getByRole('button', { name: 'Invitar a Delfi Brea por WhatsApp' }));
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(openSpy.mock.calls[0][0]).toContain('https://wa.me/34698765432?text=');
+    expect(new URL(openSpy.mock.calls[0][0]).searchParams.get('text')).toContain('Cancha: Funes');
+    expect(new URL(openSpy.mock.calls[0][0]).searchParams.get('text')).toContain('Categoría: 6ta');
+    expect(within(match).getByText('Buscando rival')).toBeInTheDocument();
+    openSpy.mockRestore();
+  });
+
+  it('rejects a match that overlaps a tournament on the selected court', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
+    fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '6ta' } });
+    fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-09-12' } });
+    fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '18:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar partido' }));
+
+    expect(screen.getByRole('status')).toHaveTextContent('Ese horario ya no está disponible');
+    expect(screen.queryByText(/Cancha 1 · 6ta · 12\/09\/2026 · 18:00/)).not.toBeInTheDocument();
   });
 
   it('applies court filters to the search fields', () => {
@@ -101,6 +257,8 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Crear' }));
     fireEvent.change(screen.getByLabelText('Nombre del torneo'), { target: { value: 'Copa Primavera' } });
     fireEvent.change(screen.getByLabelText('Día'), { target: { value: '2026-10-10' } });
+    fireEvent.change(screen.getByLabelText('Precio de inscripción'), { target: { value: '$15.000' } });
+    fireEvent.change(screen.getByLabelText('Premio'), { target: { value: '$300.000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Verificar y crear' }));
 
     expect(screen.getByText('Copa Primavera')).toBeInTheDocument();
@@ -114,28 +272,49 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Torneos' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Crear' }));
     fireEvent.change(screen.getByLabelText('Nombre del torneo'), { target: { value: 'Bloque ocupado' } });
+    fireEvent.change(screen.getByLabelText('Precio de inscripción'), { target: { value: '$15.000' } });
+    fireEvent.change(screen.getByLabelText('Premio'), { target: { value: '$300.000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Verificar y crear' }));
 
     expect(screen.getByText('La cancha ya está bloqueada por otro torneo en ese horario.')).toBeInTheDocument();
     expect(screen.queryByText('Bloque ocupado')).not.toBeInTheDocument();
   });
 
-  it('does not allow joining the same training twice', () => {
+  it('waits for trainer confirmation before enrolling in group class', () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
     fireEvent.click(screen.getAllByRole('button', { name: 'Entrenamiento' })[0]);
 
-    const joinButton = screen.getAllByRole('button', { name: 'Unirme' })[0];
-    fireEvent.click(joinButton);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Solicitar lugar' })[0]);
 
-    expect(screen.getByRole('button', { name: 'Cancelar inscripción' })).toBeEnabled();
-    expect(screen.getByRole('status')).toHaveTextContent('Inscripción confirmada.');
-    expect(screen.getAllByText('1').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'Cancelar solicitud' })).toBeEnabled();
+    expect(screen.getByRole('status')).toHaveTextContent('El entrenador debe confirmar');
+    expect(screen.getByText('2')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancelar inscripción' }));
-    expect(screen.getAllByRole('button', { name: 'Unirme' })[0]).toBeEnabled();
-    expect(screen.getByRole('status')).toHaveTextContent('Inscripción cancelada.');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar solicitud' }));
+    expect(screen.getAllByRole('button', { name: 'Solicitar lugar' })[0]).toBeEnabled();
+    expect(screen.getByRole('status')).toHaveTextContent('Solicitud cancelada.');
+  });
+
+  it('lets the trainer confirm a pending group-class request', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Entrenamiento' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Solicitar lugar' })[0]);
+    expect(screen.getByRole('button', { name: 'Cancelar solicitud' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Volver al logueo' }));
+    fireEvent.click(screen.getByRole('button', { name: /Soy entrenador/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Club del Padel Norte/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Clases' })[0]);
+
+    expect(screen.getByRole('heading', { name: 'Solicitudes pendientes' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Solicitud confirmada.');
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('blocks a coach request that overlaps a joined group class', () => {
@@ -143,7 +322,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
     fireEvent.click(screen.getAllByRole('button', { name: 'Entrenamiento' })[0]);
-    fireEvent.click(screen.getAllByRole('button', { name: 'Unirme' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Solicitar lugar' })[0]);
     fireEvent.click(screen.getAllByRole('button', { name: 'Reservar' })[0]);
 
     expect(screen.getByRole('status')).toHaveTextContent('se superpone con otra clase');

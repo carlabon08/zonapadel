@@ -1,9 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const navItems = ['Inicio', 'Entrenamiento', 'Torneos', 'Perfil'];
-const clubNavItems = ['Inicio', 'Canchas', 'Reservas', 'Perfil'];
+const navItems = ['Inicio', 'Entrenamiento', 'Torneos', 'Packs', 'Perfil'];
+const clubNavItems = ['Inicio', 'Canchas', 'Reservas', 'Packs', 'Perfil'];
 const trainerNavItems = ['Inicio', 'Clases', 'Canchas', 'Reservas', 'Perfil'];
 const tournamentNavItems = ['Inicio', 'Torneos', 'Canchas', 'Inscripciones', 'Perfil'];
+const demoMatches = [
+  { id: 1, format: 'Pádel', gender: 'femenino', city: 'Funes', level: '6ta', date: '2026-10-10', time: '18:30', missingPlayers: 1, status: 'Buscando rival' },
+  { id: 2, format: 'Pádel', gender: 'mixto', city: 'Santa Fe', level: '5ta', date: '2026-10-11', time: '20:00', missingPlayers: 1, status: 'Buscando rival' },
+  { id: 3, format: 'Pádel', gender: 'masculino', city: 'Rafaela', level: '7ma', date: '2026-10-12', time: '21:00', missingPlayers: 1, status: 'Buscando rival' },
+];
+
+const mapStoredMatch = (match) => ({
+  id: match.id,
+  format: 'Pádel',
+  gender: match.genero,
+  city: match.ciudad,
+  level: match.categoria,
+  date: match.fecha,
+  time: String(match.hora).slice(0, 5),
+  courtId: match.cancha_id,
+  court: match.cancha,
+  missingPlayers: match.jugadores_faltantes || 1,
+  status: match.estado,
+  createdByCurrentUser: Boolean(match.es_propio),
+});
 
 const navIcons = {
   Inicio: 'home',
@@ -16,6 +36,7 @@ const navIcons = {
   Reservas: 'calendar',
   Calendario: 'calendar',
   Perfil: 'profile',
+  Packs: 'calendar',
 };
 
 function NavIcon({ name, active }) {
@@ -111,10 +132,10 @@ const players = [
 ];
 
 const tournaments = [
-  { id: 1, name: 'Copa Funes', clubId: 'club-padel-norte', city: 'Funes', date: '12 Sep', startTime: '18:00', endTime: '20:00', category: 'Premier Padel', totalSeats: 16, availableSeats: 8, participants: ['Lucía P.', 'Mateo G.', 'Sofía R.', 'Bruno C.', 'Nina M.', 'Diego S.', 'Paula T.', 'Tomás D.'], image: 'https://www.padelfip.com/wp-content/uploads/2026/06/Roma-Champions-1024x682.jpeg' },
-  { id: 2, name: 'Liga local', clubId: 'padel-arena', city: 'Santa Fe', date: '18 Sep', startTime: '19:00', endTime: '21:00', category: 'Premier Padel', totalSeats: 20, availableSeats: 12, participants: ['Agustín T.', 'Arturo C.', 'Delfi B.', 'Gema T.', 'Julián V.', 'Carla M.', 'Martín R.', 'Sofía C.'], image: 'https://cdn.premierpadel.com/uploads/hero/original/31969ff297d31a1918217f1ce0b94d546d4f8c33b4d4000052dc81c22895c2c3.jpg' },
-  { id: 3, name: 'Premier Tour', clubId: 'sunset-club', city: 'Rafaela', date: '20 Sep', startTime: '20:00', endTime: '22:00', category: 'FIP Tour', totalSeats: 12, availableSeats: 10, participants: ['Julián V.', 'Paula T.'], image: 'https://damcdn.premierpadel.com/pendularupload/abstracts/12495/thumbnail.jpg' },
-  { id: 4, name: 'Copa Funes Nocturna', clubId: 'club-padel-norte', city: 'Funes', date: '12 Sep', startTime: '18:00', endTime: '20:00', category: '6ta', totalSeats: 16, availableSeats: 10, participants: ['Carla M.', 'Martín R.', 'Sofía C.', 'Diego V.', 'Nina M.', 'Julián V.'], image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80' },
+  { id: 1, name: 'Copa Funes', clubId: 'club-padel-norte', city: 'Funes', date: '12 Sep', startTime: '18:00', endTime: '20:00', category: 'Premier Padel', totalSeats: 16, availableSeats: 8, price: '$15.000 por pareja', prize: '$400.000 + trofeos', participants: ['Lucía P.', 'Mateo G.', 'Sofía R.', 'Bruno C.', 'Nina M.', 'Diego S.', 'Paula T.', 'Tomás D.'], image: 'https://www.padelfip.com/wp-content/uploads/2026/06/Roma-Champions-1024x682.jpeg' },
+  { id: 2, name: 'Liga local', clubId: 'padel-arena', city: 'Santa Fe', date: '18 Sep', startTime: '19:00', endTime: '21:00', category: 'Premier Padel', totalSeats: 20, availableSeats: 12, price: '$12.000 por pareja', prize: '$300.000', participants: ['Agustín T.', 'Arturo C.', 'Delfi B.', 'Gema T.', 'Julián V.', 'Carla M.', 'Martín R.', 'Sofía C.'], image: 'https://cdn.premierpadel.com/uploads/hero/original/31969ff297d31a1918217f1ce0b94d546d4f8c33b4d4000052dc81c22895c2c3.jpg' },
+  { id: 3, name: 'Premier Tour', clubId: 'sunset-club', city: 'Rafaela', date: '20 Sep', startTime: '20:00', endTime: '22:00', category: 'FIP Tour', totalSeats: 12, availableSeats: 10, price: '$20.000 por pareja', prize: '$500.000 + premios de sponsors', participants: ['Julián V.', 'Paula T.'], image: 'https://damcdn.premierpadel.com/pendularupload/abstracts/12495/thumbnail.jpg' },
+  { id: 4, name: 'Copa Funes Nocturna', clubId: 'club-padel-norte', city: 'Funes', date: '12 Sep', startTime: '18:00', endTime: '20:00', category: '6ta', totalSeats: 16, availableSeats: 10, price: '$10.000 por pareja', prize: '$200.000', participants: ['Carla M.', 'Martín R.', 'Sofía C.', 'Diego V.', 'Nina M.', 'Julián V.'], image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80' },
 ];
 
 const coaches = [
@@ -300,6 +321,7 @@ function App() {
   const [authName, setAuthName] = useState('');
   const [authRole, setAuthRole] = useState('jugador');
   const [authMode, setAuthMode] = useState('login');
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authError, setAuthError] = useState('');
   const [selectedClubId, setSelectedClubId] = useState(null);
   const [trainerServiceClubs, setTrainerServiceClubs] = useState([]);
@@ -307,7 +329,10 @@ function App() {
   const [selectedAvatarId, setSelectedAvatarId] = useState('delfi-brea');
   const [selectedShot, setSelectedShot] = useState('drive');
   const [activeTab, setActiveTab] = useState('Inicio');
-  const [selectedCourt, setSelectedCourt] = useState(courts[0]);
+  const [selectedCourt, setSelectedCourt] = useState(() => courts.reduce((nearest, court) => (
+    Number.parseFloat(court.distance) < Number.parseFloat(nearest.distance) ? court : nearest
+  )));
+  const [showAllCourts, setShowAllCourts] = useState(false);
   const [isCourtPhotoOpen, setIsCourtPhotoOpen] = useState(false);
   const [courtStates, setCourtStates] = useState(courts.map((court) => ({ ...court })));
   const [userLocation, setUserLocation] = useState({
@@ -315,21 +340,29 @@ function App() {
     lng: -60.7933,
     label: 'Funes, Santa Fe, Argentina',
   });
-  const [matchPool, setMatchPool] = useState([
-    { id: 1, format: 'Pádel', gender: 'femenino', city: 'Funes', level: '6ta', time: '18:30', missingPlayers: 1, status: 'Buscando rival', notified: false },
-    { id: 2, format: 'Pádel', gender: 'mixto', city: 'Santa Fe', level: '5ta', time: '20:00', missingPlayers: 1, status: 'Disponible', notified: true },
-    { id: 3, format: 'Pádel', gender: 'masculino', city: 'Rafaela', level: '7ma', time: '21:00', missingPlayers: 1, status: 'Pendiente', notified: false },
-  ]);
+  const [matchPool, setMatchPool] = useState(demoMatches);
+  const [showMatchForm, setShowMatchForm] = useState(false);
+  const [matchDraft, setMatchDraft] = useState({ courtId: '', category: '', date: '', time: '' });
+  const [matchNotice, setMatchNotice] = useState('');
+  const [matchPreferences, setMatchPreferences] = useState({
+    categoria: '6ta', genero: 'femenino', ciudad: 'Funes', disponible: false,
+    telefono_whatsapp: '', whatsapp_consentimiento: false,
+  });
+  const [matchNotifications, setMatchNotifications] = useState([]);
+  const [showMatchNotifications, setShowMatchNotifications] = useState(false);
+  const [matchPreferencesNotice, setMatchPreferencesNotice] = useState('');
   const [trainingPool, setTrainingPool] = useState([
     { id: 1, coach: 'Martín Ruiz', specialty: 'Drive y precisión', time: 'Hoy · 18:00', dayKey: 'hoy', startTime: '18:00', endTime: '19:00', duration: '60 min', available: 2, students: ['Lucía', 'Mateo', 'Sofía'], status: 'Plazas abiertas' },
     { id: 2, coach: 'Sofía Costa', specialty: 'Volea y red', time: 'Mañana · 17:30', dayKey: 'manana', startTime: '17:30', endTime: '18:15', duration: '45 min', available: 1, students: ['Diego', 'Carla'], status: 'Última plaza' },
     { id: 3, coach: 'Diego Vera', specialty: 'Táctica defensiva', time: 'Viernes · 19:00', dayKey: 'viernes', startTime: '19:00', endTime: '20:00', duration: '60 min', available: 3, students: ['Tomás', 'Nina', 'Juli'], status: 'Disponible' },
   ]);
   const [joinedTrainingIds, setJoinedTrainingIds] = useState([]);
+  const [pendingTrainingIds, setPendingTrainingIds] = useState([]);
+  const [isIndividualClass, setIsIndividualClass] = useState(false);
   const [trainingNotice, setTrainingNotice] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState({});
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(true);
-  const [advancedFilterType, setAdvancedFilterType] = useState('Pool de partidos');
+  const [advancedFilterType, setAdvancedFilterType] = useState('Partidos');
   const [appliedCourtFilters, setAppliedCourtFilters] = useState({
     opening: '',
     date: '',
@@ -351,7 +384,7 @@ function App() {
   const [tournamentNotice, setTournamentNotice] = useState('');
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [tournamentDraft, setTournamentDraft] = useState({
-    name: '', clubId: 'club-padel-norte', courtId: '1', date: '2026-09-12', from: '18:00', to: '20:00',
+    name: '', clubId: 'club-padel-norte', courtId: '1', date: '2026-09-12', from: '18:00', to: '20:00', price: '', prize: '',
   });
   const [tournamentEventsList, setTournamentEventsList] = useState(tournamentEvents);
   const [calendarStatusFilter, setCalendarStatusFilter] = useState('Todos');
@@ -364,6 +397,28 @@ function App() {
   const [clubProfileDraft, setClubProfileDraft] = useState({ name: '', city: '', address: '', phone: '' });
   const [apiReservationsLoaded, setApiReservationsLoaded] = useState(false);
   const [hasLocalCalendarChanges, setHasLocalCalendarChanges] = useState(false);
+  const [packs, setPacks] = useState([]);
+const [misPacks, setMisPacks] = useState([]);
+const [showPackForm, setShowPackForm] = useState(false);
+const [packDraft, setPackDraft] = useState({ nombre: '', tipo: 'cancha', creditos: 5, precio: '', precioLista: '', vigenciaDias: 90 });
+
+useEffect(() => {
+  const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token');
+  if (!token) return;
+
+  const clubIdParam = selectedRole === 'club' && selectedClubId ? `?club_id=${encodeURIComponent(selectedClubId)}` : '';
+  fetch(`/api/packs${clubIdParam}`, { headers: { Authorization: `Bearer ${token}` } })
+    .then((response) => response.ok ? response.json() : [])
+    .then(setPacks)
+    .catch(() => setPacks([]));
+
+  if (selectedRole === 'jugador') {
+    fetch('/api/pack-compras/mis-compras', { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => response.ok ? response.json() : [])
+      .then(setMisPacks)
+      .catch(() => setMisPacks([]));
+  }
+}, [authenticatedUser, selectedRole, selectedClubId]);
 
   const avatarSet = avatarOptions[selectedTheme] || avatarOptions.rosa;
   const selectedAvatar = avatarSet.find((avatar) => avatar.id === selectedAvatarId) || avatarSet[0];
@@ -391,7 +446,9 @@ function App() {
     return matchesOpening && matchesTime;
   });
   const visibleMatches = matchPool.filter((match) =>
-    (match.gender === selectedGender || match.gender === 'mixto') && match.level === selectedPlayerLevel
+    match.status !== 'Cancelado'
+    && (match.gender === selectedGender || match.gender === 'mixto')
+    && match.level === selectedPlayerLevel
   );
   const visiblePlayers = players.filter((player) =>
     (selectedGender === 'mixto' || player.gender === selectedGender) && player.level === selectedPlayerLevel
@@ -492,6 +549,50 @@ function App() {
   }, [authenticatedUser, selectedRole, selectedClubId]);
 
   useEffect(() => {
+    if (selectedRole !== 'jugador') return;
+
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) {
+      setMatchPool(demoMatches);
+      return;
+    }
+
+    let active = true;
+    fetch('/api/partidos', { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Could not load matches');
+        return response.json();
+      })
+      .then((partidos) => {
+        if (active) setMatchPool(partidos.map(mapStoredMatch));
+      })
+      .catch(() => {
+        if (active) {
+          setMatchPool([]);
+          setMatchNotice('No se pudieron cargar los partidos. Reintentá.');
+        }
+      });
+
+    fetch('/api/partidos/preferencias', { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((preferences) => {
+        if (active && preferences) {
+          setMatchPreferences(preferences);
+          setSelectedPlayerLevel(preferences.categoria);
+          setSelectedGender(preferences.genero);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/partidos/notificaciones', { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => response.ok ? response.json() : [])
+      .then((notifications) => { if (active) setMatchNotifications(notifications); })
+      .catch(() => { if (active) setMatchNotifications([]); });
+
+    return () => { active = false; };
+  }, [authenticatedUser, selectedRole]);
+
+  useEffect(() => {
     if (!navigator.geolocation) {
       return;
     }
@@ -556,20 +657,150 @@ function App() {
   };
 
   const handleReserveClick = () => {
-    const newMatch = {
-      id: Date.now(),
-      format: 'Pádel',
-      city: currentLocationLabel.includes('Funes') ? 'Funes' : 'Tu zona',
-      level: '3ra',
-      time: '19:00',
-      missingPlayers: 1,
-      status: 'Buscando rival',
-      notified: false,
-      gender: loggedInProfile.gender,
-    };
+    setMatchDraft({ courtId: '', category: '', date: '', time: '' });
+    setMatchNotice('');
+    setShowMatchForm(true);
+  };
 
-    setMatchPool((current) => [newMatch, ...current]);
-    setActiveTab('Buscar');
+  const handleMatchLoginRequest = () => {
+    setAuthMode('login');
+    setAuthError('');
+    setSelectedRole(null);
+  };
+
+  const saveMatchPreferences = async (event) => {
+    event.preventDefault();
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) {
+      setMatchPreferencesNotice('Iniciá sesión para guardar tu disponibilidad.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/partidos/preferencias', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(matchPreferences),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setMatchPreferencesNotice(payload.message || 'No se pudo guardar la disponibilidad.');
+        return;
+      }
+      setMatchPreferences(payload);
+      setSelectedPlayerLevel(payload.categoria);
+      setSelectedGender(payload.genero);
+      setMatchPreferencesNotice('Preferencias guardadas.');
+    } catch {
+      setMatchPreferencesNotice('No se pudo conectar con el servidor.');
+    }
+  };
+
+  const markMatchNotificationRead = async (notificationId) => {
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) return;
+    const response = await fetch(`/api/partidos/notificaciones/${notificationId}/leida`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) return;
+    setMatchNotifications((current) => current.map((notification) => notification.id === notificationId
+      ? { ...notification, leida: true }
+      : notification));
+  };
+
+  const handleCreateMatch = async (event) => {
+    event.preventDefault();
+    const { courtId, category, date, time } = matchDraft;
+    if (!courtId || !category || !date || !time) return;
+
+    const court = courtStates.find((item) => String(item.id) === courtId);
+    if (!court) return;
+    const club = clubs.find((item) => item.id === court.clubId);
+    const courtUnavailable = ['cerrada', 'mantenimiento', 'reservada'].includes(court.status.toLowerCase());
+    const matchConflict = matchPool.some((match) =>
+      Number(match.courtId) === court.id && match.date === date && match.time === time
+    );
+    const tournamentConflict = tournamentEventsList.some((tournament) =>
+      String(tournament.courtId) === String(court.id)
+      && tournament.date === date
+      && tournament.status !== 'Cancelado'
+      && time >= tournament.from
+      && time < tournament.to
+    );
+
+    if (courtUnavailable) {
+      setMatchNotice(`La cancha está ${court.status.toLowerCase()} y no se puede usar para este partido.`);
+      return;
+    }
+
+    if (!court.slots.includes(time) || matchConflict || tournamentConflict) {
+      setMatchNotice('Ese horario ya no está disponible para la cancha y fecha elegidas. Seleccioná otro.');
+      return;
+    }
+
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) {
+      setMatchNotice('Iniciá sesión para guardar el partido en la base de datos.');
+      return;
+    }
+
+    try {
+      const query = new URLSearchParams({ cancha_id: String(court.id), fecha: date, hora: time });
+      const availabilityResponse = await fetch(`/api/reservas/disponibilidad?${query}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!availabilityResponse.ok) throw new Error('Availability check failed');
+      const { available } = await availabilityResponse.json();
+      if (!available) {
+        setMatchNotice('Ese horario ya está reservado. Seleccioná otro.');
+        return;
+      }
+
+      const response = await fetch('/api/partidos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ cancha_id: court.id, categoria: category, genero: selectedGender, fecha: date, hora: time }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setMatchNotice(payload.message || 'No se pudo publicar el partido.');
+        return;
+      }
+
+      setMatchPool((current) => [mapStoredMatch(payload), ...current.filter((match) => match.id !== payload.id)]);
+      setMatchNotice(`Partido publicado. Se notificó a ${payload.notificados || 0} jugadores disponibles en la zona.`);
+      setSelectedPlayerLevel(category);
+      setShowMatchForm(false);
+      setActiveTab('Buscar');
+    } catch {
+      setMatchNotice('No se pudo guardar el partido. Reintentá.');
+    }
+  };
+
+  const handleCancelMatch = async (matchId) => {
+    const match = matchPool.find((item) => item.id === matchId);
+    if (!match?.createdByCurrentUser || !window.confirm('¿Querés cancelar este partido?')) return;
+
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) {
+      setMatchNotice('Iniciá sesión para cancelar este partido.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/partidos/${matchId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Match cancellation failed');
+      setMatchPool((current) => current.map((item) => item.id === matchId
+        ? { ...item, status: 'Cancelado' }
+        : item));
+      setMatchNotice('Partido cancelado.');
+    } catch {
+      setMatchNotice('No se pudo cancelar el partido. Reintentá.');
+    }
   };
 
   const handleRoleCourtBooking = (roleLabel, timeLabel) => {
@@ -604,8 +835,30 @@ function App() {
     setTrainerServiceClubs([]);
     setActiveTab('Inicio');
     setSelectedCourt(courts[0]);
+    setMatchPool(demoMatches);
   };
+const comprarPack = async (packId) => {
+  const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token');
+  const response = await fetch('/api/pack-compras', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ pack_id: packId }),
+  });
+  const data = await response.json();
+  if (data.init_point) window.location.href = data.init_point;
+};
 
+const crearPack = async () => {
+  const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token');
+  const response = await fetch('/api/packs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ ...packDraft, club_id: selectedClubId }),
+  });
+  const nuevoPack = await response.json();
+  setPacks((current) => [nuevoPack, ...current]);
+  setShowPackForm(false);
+};
   const handleLogin = async (event) => {
     event.preventDefault();
     setAuthError('');
@@ -687,35 +940,19 @@ function App() {
     });
   };
 
-  const notifyPlayers = (matchId) => {
-    const selectedPlayerIds = selectedRecipients[matchId] || [];
-    const selectedPlayers = players.filter((player) => selectedPlayerIds.includes(player.id));
+  const openMatchWhatsApp = (matchId, playerId) => {
+    const match = matchPool.find((item) => item.id === matchId);
+    const player = players.find((item) => item.id === playerId);
+    if (!match || !player?.phone) return;
+    if (!window.confirm(`¿Confirmás abrir WhatsApp para invitar a ${player.name}?`)) return;
 
-    if (selectedPlayers.length === 0) {
-      return;
-    }
-
-    const whatsappNumbers = selectedPlayers
-      .map((player) => player.phone)
-      .filter(Boolean)
-      .join(',');
-
+    const location = match.court ? `${match.court}, ${match.city}` : match.city;
+    const date = match.date ? formatFilterDate(match.date) : 'a coordinar';
     const message = encodeURIComponent(
-      `Hola! Te invitamos a jugar un partido de pádel a las ${matchPool.find((match) => match.id === matchId)?.time || '19:00'}. ¿Te sumás?`
+      `Hola ${player.name}, ¿te sumás a jugar pádel? Cancha: ${location}. Categoría: ${match.level}. Fecha: ${date} a las ${match.time}.`
     );
-
-    if (whatsappNumbers) {
-      const url = `https://wa.me/${whatsappNumbers.replace(/\D/g, '')}?text=${message}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-
-    setMatchPool((current) =>
-      current.map((match) =>
-        match.id === matchId
-          ? { ...match, notified: true, status: 'Notificación enviada' }
-          : match
-      )
-    );
+    const url = `https://wa.me/${player.phone.replace(/\D/g, '')}?text=${message}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const contactPlayerOnWhatsApp = (player) => {
@@ -733,10 +970,14 @@ function App() {
       setTrainingNotice('Ya estás inscripto en esta clase.');
       return;
     }
+    if (pendingTrainingIds.includes(trainingId)) {
+      setTrainingNotice('Tu solicitud está pendiente de confirmación del entrenador.');
+      return;
+    }
 
     const selectedTraining = trainingPool.find((session) => session.id === trainingId);
     const hasOverlap = trainingPool.some((session) =>
-      joinedTrainingIds.includes(session.id)
+      (joinedTrainingIds.includes(session.id) || pendingTrainingIds.includes(session.id))
       && session.dayKey === selectedTraining?.dayKey
       && session.startTime < selectedTraining.endTime
       && session.endTime > selectedTraining.startTime
@@ -747,35 +988,52 @@ function App() {
       return;
     }
 
-    setJoinedTrainingIds((current) => [...current, trainingId]);
-    setTrainingNotice('Inscripción confirmada.');
-    setTrainingPool((current) =>
-      current.map((session) =>
-        session.id === trainingId && session.available > 0
-          ? {
-              ...session,
-              available: session.available - 1,
-              students: [...session.students, 'Tú'],
-              status: session.available - 1 === 0 ? 'Clase completa' : 'Plazas abiertas',
-            }
-          : session
-      )
-    );
+    setPendingTrainingIds((current) => [...current, trainingId]);
+    setTrainingNotice('Solicitud enviada. El entrenador debe confirmar tu lugar.');
   };
 
   const handleCancelTraining = (trainingId) => {
-    setJoinedTrainingIds((current) => current.filter((id) => id !== trainingId));
-    setTrainingPool((current) => current.map((session) => {
-      if (session.id !== trainingId) return session;
+    if (pendingTrainingIds.includes(trainingId)) {
+      setPendingTrainingIds((current) => current.filter((id) => id !== trainingId));
+      setTrainingNotice('Solicitud cancelada.');
+      return;
+    }
 
+    setJoinedTrainingIds((current) => current.filter((id) => id !== trainingId));
+    setTrainingPool((current) => current.map((session) => session.id !== trainingId ? session : ({
+      ...session,
+      available: session.available + 1,
+      students: session.students.filter((student) => student !== 'Tú'),
+      status: 'Plazas abiertas',
+    })));
+    setTrainingNotice('Inscripción cancelada.');
+  };
+
+  const handleTrainingRequest = (trainingId, approve) => {
+    if (!pendingTrainingIds.includes(trainingId)) return;
+    const requestedTraining = trainingPool.find((session) => session.id === trainingId);
+    if (approve && requestedTraining?.available === 0) {
+      setTrainingNotice('No quedan plazas para confirmar esta solicitud.');
+      return;
+    }
+    setPendingTrainingIds((current) => current.filter((id) => id !== trainingId));
+    if (!approve) {
+      setTrainingNotice('Solicitud rechazada.');
+      return;
+    }
+
+    setJoinedTrainingIds((current) => [...current, trainingId]);
+    setTrainingPool((current) => current.map((session) => {
+      if (session.id !== trainingId || session.available === 0) return session;
+      const available = session.available - 1;
       return {
         ...session,
-        available: session.available + 1,
-        students: session.students.filter((student) => student !== 'Tú'),
-        status: 'Plazas abiertas',
+        available,
+        students: [...session.students, 'Tú'],
+        status: available === 0 ? 'Clase completa' : 'Plazas abiertas',
       };
     }));
-    setTrainingNotice('Inscripción cancelada.');
+    setTrainingNotice('Solicitud confirmada.');
   };
 
   const requestCoachBooking = (coachId) => {
@@ -787,7 +1045,7 @@ function App() {
 
     const selectedCoach = coaches.find((coach) => coach.id === coachId);
     const hasGroupOverlap = trainingPool.some((session) =>
-      joinedTrainingIds.includes(session.id)
+      (joinedTrainingIds.includes(session.id) || pendingTrainingIds.includes(session.id))
       && session.dayKey === selectedCoach?.dayKey
       && session.startTime < selectedCoach.endTime
       && session.endTime > selectedCoach.startTime
@@ -850,9 +1108,9 @@ function App() {
   };
 
   const createTournament = () => {
-    const { name, clubId, courtId, date, from, to } = tournamentDraft;
-    if (!name || !date || !from || !to || from >= to) {
-      setTournamentNotice('Completá nombre, día y un horario válido.');
+    const { name, clubId, courtId, date, from, to, price, prize } = tournamentDraft;
+    if (!name || !date || !from || !to || from >= to || !price.trim() || !prize.trim()) {
+      setTournamentNotice('Completá nombre, día, horario válido, precio y premio.');
       return;
     }
 
@@ -868,7 +1126,7 @@ function App() {
     const club = clubs.find((item) => item.id === clubId);
     const court = courts.find((item) => String(item.id) === String(courtId));
     setTournamentEventsList((current) => [{
-      id: Date.now(), name, clubId, courtId, date, from, to,
+      id: Date.now(), name, clubId, courtId, date, from, to, price: price.trim(), prize: prize.trim(),
       displayDate: new Date(`${date}T12:00:00`).toLocaleDateString('es-AR'),
       court: court?.name || 'Cancha', teams: 0, status: 'Pendiente', clubName: club?.name || clubId,
     }, ...current]);
@@ -937,44 +1195,49 @@ function App() {
         return (
           <div className="tab-content">
             <section className="panel">
-              <div className="advanced-filters" aria-label="Filtros avanzados">
-                  <div className="section-header filter-header">
-                    <h3>Filtros de {advancedFilterType.toLowerCase()}</h3>
+              <div className={activeTab === 'Inicio' ? 'advanced-filters with-hero' : 'advanced-filters'} aria-label="Filtros avanzados">
+                  <div className={activeTab === 'Inicio' ? 'filters-hero' : 'filters-top'}>
+                    <div className="filters-hero-row">
+                      <h3>Filtros de {advancedFilterType.toLowerCase()}</h3>
+                      {activeTab === 'Inicio' ? (
+                        <button type="button" className="primary-btn small-btn" onClick={() => setActiveTab('Canchas')}>Ver mapa</button>
+                      ) : null}
+                    </div>
+                    <div className="filter-tabs" role="tablist" aria-label="Tipo de búsqueda">
+                      {['Partidos', 'Canchas', 'Jugadores'].map((filterType) => (
+                        <button
+                          key={filterType}
+                          type="button"
+                          role="tab"
+                          aria-selected={advancedFilterType === filterType}
+                          className={advancedFilterType === filterType ? 'filter-tab active' : 'filter-tab'}
+                          onClick={() => setAdvancedFilterType(filterType)}
+                        >
+                          {filterType}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="filter-tabs" role="tablist" aria-label="Tipo de búsqueda">
-                      {['Pool de partidos', 'Canchas', 'Jugadores'].map((filterType) => (
-                      <button
-                        key={filterType}
-                        type="button"
-                        role="tab"
-                        aria-selected={advancedFilterType === filterType}
-                        className={advancedFilterType === filterType ? 'filter-tab active' : 'filter-tab'}
-                        onClick={() => setAdvancedFilterType(filterType)}
-                      >
-                        {filterType}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="filter-fields">
-                    {advancedFilterType === 'Pool de partidos' ? (
+                  <div className={`filter-fields ${advancedFilterType === 'Partidos' ? 'match-filter-fields' : ''}`}>
+                    {advancedFilterType === 'Partidos' ? (
                       <>
-                        <label>Género
+                        <label className="field-sm">Género
                           <select value={selectedGender} onChange={(event) => setSelectedGender(event.target.value)} aria-label="Género del partido">
                             <option value="femenino">Femenino</option>
                             <option value="masculino">Masculino</option>
                             <option value="mixto">Mixto</option>
                           </select>
                         </label>
-                        <label>Fecha
+                        <label className="field-date">Fecha
                           <input type="date" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha del partido" />
                         </label>
-                        <label>Desde
+                        <label className="field-time">Desde
                           <input type="time" value={draftCourtFilters.from} onChange={(event) => updateCourtFilter('from', event.target.value)} aria-label="Hora inicial del partido" />
                         </label>
-                        <label>Hasta
+                        <label className="field-time">Hasta
                           <input type="time" value={draftCourtFilters.to} onChange={(event) => updateCourtFilter('to', event.target.value)} aria-label="Hora final del partido" />
                         </label>
-                        <label>Nivel
+                        <label className="field-xs">Nivel
                           <select value={selectedPlayerLevel} onChange={(event) => setSelectedPlayerLevel(event.target.value)} aria-label="Nivel del partido">
                             {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
                           </select>
@@ -1105,22 +1368,91 @@ function App() {
               </section>
             ) : null}
 
-            {advancedFilterType === 'Pool de partidos' ? (
+            {advancedFilterType === 'Partidos' ? (
             <section className="panel pool-panel">
               <div className="section-header">
-                <h3>Pool de partidos</h3>
-                <button type="button" className="link-btn" onClick={handleReserveClick}>Crear partido</button>
+                <h3>Partidos</h3>
+                <button type="button" className="link-btn create-match-btn" onClick={handleReserveClick}>Crear partido</button>
               </div>
               <p className="pool-distance-hint">Jugadores disponibles dentro de un radio de 10 km.</p>
+
+              {showMatchForm ? (
+                <form className="match-create-form" onSubmit={handleCreateMatch}>
+                  <label>Cancha
+                    <select
+                      aria-label="Cancha del partido"
+                      value={matchDraft.courtId}
+                      onChange={(event) => setMatchDraft((current) => ({ ...current, courtId: event.target.value }))}
+                      required
+                    >
+                      <option value="">Seleccioná una cancha</option>
+                      {courtStates.map((court) => (
+                        <option
+                          key={court.id}
+                          value={court.id}
+                          disabled={['cerrada', 'mantenimiento', 'reservada'].includes(court.status.toLowerCase())}
+                        >
+                          {court.club} · {court.name} · {court.status}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>Categoría
+                    <select
+                      aria-label="Categoría del partido"
+                      value={matchDraft.category}
+                      onChange={(event) => setMatchDraft((current) => ({ ...current, category: event.target.value }))}
+                      required
+                    >
+                      <option value="">Seleccioná una categoría</option>
+                      {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+                    </select>
+                  </label>
+                  <label>Fecha
+                    <input
+                      type="date"
+                      aria-label="Fecha del nuevo partido"
+                      value={matchDraft.date}
+                      onChange={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label>Horario disponible
+                    <select
+                      aria-label="Hora del partido"
+                      value={matchDraft.time}
+                      onChange={(event) => setMatchDraft((current) => ({ ...current, time: event.target.value }))}
+                      required
+                    >
+                      <option value="">Seleccioná un horario</option>
+                      {courtStates.find((court) => String(court.id) === matchDraft.courtId)?.slots.map((slot) => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="match-form-actions">
+                    <button type="submit" className="primary-btn small-btn" disabled={!matchDraft.courtId || !matchDraft.category || !matchDraft.date || !matchDraft.time}>Publicar partido</button>
+                    <button type="button" className="secondary-btn small-btn" onClick={() => setShowMatchForm(false)}>Cancelar</button>
+                  </div>
+                </form>
+              ) : null}
+              {matchNotice ? (
+                <div className="training-notice" role="status">
+                  <span>{matchNotice}</span>
+                  {!authenticatedUser && showMatchForm ? (
+                    <button type="button" className="link-btn" onClick={handleMatchLoginRequest}>Iniciar sesión</button>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className="match-pool">
                 {visibleMatches.map((match) => (
                   <div key={match.id} className="match-card">
                     <div className="match-header">
                       <strong>{match.format}</strong>
-                      <span className={match.notified ? 'match-status ok' : 'match-status'}>{match.status}</span>
+                      <span className="match-status">{match.status}</span>
                     </div>
-                    <p>{match.city} · {match.level} · {match.time}</p>
+                    <p>{match.city} · {match.court ? `${match.court} · ` : ''}{match.level} · {match.date ? formatFilterDate(match.date) : 'Fecha a coordinar'} · {match.time}</p>
                     <small>Faltan {match.missingPlayers} jugador/es para completar la pareja</small>
 
                     <div className="recipient-picker">
@@ -1139,9 +1471,31 @@ function App() {
                       </div>
                     </div>
 
-                    <button type="button" className="primary-btn small-btn" onClick={() => notifyPlayers(match.id)}>
-                      {match.notified ? 'Notificados' : 'Enviar WhatsApp'}
-                    </button>
+                    <div className="match-actions">
+                      {nearbyPoolPlayers
+                        .filter((player) => (selectedRecipients[match.id] || []).includes(player.id) && player.phone)
+                        .map((player) => (
+                          <button
+                            key={`${match.id}-${player.id}`}
+                            type="button"
+                            className="whatsapp-btn"
+                            aria-label={`Invitar a ${player.name} por WhatsApp`}
+                            onClick={() => openMatchWhatsApp(match.id, player.id)}
+                          >
+                            WhatsApp · {player.name}
+                          </button>
+                        ))}
+                      {match.createdByCurrentUser ? (
+                        <button
+                          type="button"
+                          className="secondary-btn small-btn match-cancel-btn"
+                          aria-label={`Cancelar partido en ${match.court} el ${formatFilterDate(match.date)}`}
+                          onClick={() => handleCancelMatch(match.id)}
+                        >
+                          Cancelar partido
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1179,11 +1533,46 @@ function App() {
           <div className="tab-content">
             <section className="panel">
               <div className="section-header">
+                <h3>Mapa de canchas</h3>
+                <button type="button" className="link-btn">Cerca de ti</button>
+              </div>
+
+              <div className="map-card">
+                {rankedCourtStates.map((court) => (
+                  <button
+                    key={court.id}
+                    type="button"
+                    className={selectedCourt.id === court.id ? 'map-pin active' : 'map-pin'}
+                    style={{ left: court.mapPosition.left, top: court.mapPosition.top }}
+                    onClick={() => { setSelectedCourt(court); setShowAllCourts(false); }}
+                    aria-label={`Seleccionar ${court.name}`}
+                    title={court.name}
+                  />
+                ))}
+                <div className="map-center">
+                  <span>{selectedCourt.name}</span>
+                  <strong>{selectedCourt.distance}</strong>
+                </div>
+                <div className="map-actions">
+                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'google')}>
+                    Google Maps
+                  </button>
+                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'apple')}>
+                    Apple Maps
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="panel">
+              <div className="section-header">
                 <h3>Listado de canchas</h3>
-                <button type="button" className="link-btn">Mapa</button>
+                <button type="button" className="link-btn" onClick={() => setShowAllCourts((current) => !current)}>
+                  {showAllCourts ? 'Solo seleccionada' : 'Ver todas'}
+                </button>
               </div>
               <div className="court-list">
-                {rankedCourtStates.map((court) => (
+                {rankedCourtStates.filter((court) => showAllCourts || court.id === selectedCourt.id).map((court) => (
                   <button
                     key={court.id}
                     type="button"
@@ -1219,39 +1608,6 @@ function App() {
                 ))}
               </div>
             </section>
-
-            <section className="panel">
-              <div className="section-header">
-                <h3>Mapa de canchas</h3>
-                <button type="button" className="link-btn">Cerca de ti</button>
-              </div>
-
-              <div className="map-card">
-                {rankedCourtStates.map((court) => (
-                  <button
-                    key={court.id}
-                    type="button"
-                    className={selectedCourt.id === court.id ? 'map-pin active' : 'map-pin'}
-                    style={{ left: court.mapPosition.left, top: court.mapPosition.top }}
-                    onClick={() => setSelectedCourt(court)}
-                    aria-label={`Seleccionar ${court.name}`}
-                    title={court.name}
-                  />
-                ))}
-                <div className="map-center">
-                  <span>{selectedCourt.name}</span>
-                  <strong>{selectedCourt.distance}</strong>
-                </div>
-                <div className="map-actions">
-                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'google')}>
-                    Google Maps
-                  </button>
-                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'apple')}>
-                    Apple Maps
-                  </button>
-                </div>
-              </div>
-            </section>
           </div>
         );
       case 'Entrenamiento':
@@ -1259,10 +1615,11 @@ function App() {
           <div className="tab-content">
             <section className="panel">
               <div className="section-header">
-                <h3>Clasificado por entrenador</h3>
-                <button type="button" className="link-btn">Ver todos</button>
+                <h3>Por Entrenador</h3>
+                <span className="filter-tab active">{isIndividualClass ? 'Clase individual' : 'Clases grupales abiertas'}</span>
               </div>
 
+              {!isIndividualClass ? (
               <div className="training-grid">
                 {trainingPool.map((session) => (
                   <div key={session.id} className="training-card">
@@ -1290,14 +1647,16 @@ function App() {
                       <button
                         type="button"
                         className="primary-btn small-btn"
-                        onClick={() => joinedTrainingIds.includes(session.id)
+                        onClick={() => joinedTrainingIds.includes(session.id) || pendingTrainingIds.includes(session.id)
                           ? handleCancelTraining(session.id)
                           : handleJoinTraining(session.id)}
-                        disabled={session.available === 0 && !joinedTrainingIds.includes(session.id)}
+                        disabled={session.available === 0 && !joinedTrainingIds.includes(session.id) && !pendingTrainingIds.includes(session.id)}
                       >
                         {joinedTrainingIds.includes(session.id)
                           ? 'Cancelar inscripción'
-                          : session.available === 0 ? 'Completa' : 'Unirme'}
+                          : pendingTrainingIds.includes(session.id)
+                            ? 'Cancelar solicitud'
+                            : session.available === 0 ? 'Completa' : 'Solicitar lugar'}
                       </button>
                     </div>
 
@@ -1312,13 +1671,37 @@ function App() {
                   </div>
                 ))}
               </div>
+              ) : (
+              <div className="individual-slots">
+                <strong>Horarios disponibles · Clase individual</strong>
+                <div className="slot-row">
+                  {['09:00', '10:00', '17:00', '18:00', '20:00'].map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      className="filter-tab"
+                      onClick={() => setTrainingNotice(`Clase individual solicitada para las ${slot}.`)}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              )}
               {trainingNotice ? <p className="training-notice" role="status">{trainingNotice}</p> : null}
             </section>
 
             <section className="panel">
               <div className="section-header">
                 <h3>Profesores disponibles</h3>
-                <button type="button" className="link-btn">Filtrar</button>
+                <button
+                  type="button"
+                  className="filter-tab active"
+                  aria-pressed={isIndividualClass}
+                  onClick={() => setIsIndividualClass((current) => !current)}
+                >
+                  {isIndividualClass ? '✓ ' : ''}Individual
+                </button>
               </div>
 
               <div className="coach-list">
@@ -1377,6 +1760,10 @@ function App() {
                       <strong>{tournament.availableSeats} disponibles</strong>
                       <span>{tournament.totalSeats} plazas totales</span>
                     </div>
+                    <div className="tournament-capacity">
+                      <strong>{tournament.price}</strong>
+                      <span>Premio: {tournament.prize}</span>
+                    </div>
                     <div className="tournament-participants">
                       <small>Jugadores inscriptos</small>
                       <span>{tournament.participants.join(', ')}</span>
@@ -1424,6 +1811,49 @@ function App() {
             </section>
           </div>
         );
+        case 'Packs':
+  return (
+    <div className="tab-content">
+      <section className="panel">
+        <div className="section-header">
+          <h3>Packs disponibles</h3>
+        </div>
+        <div className="court-list">
+          {packs.map((pack) => (
+            <div key={pack.id} className="court-card">
+              <div className="court-top">
+                <div>
+                  <strong>{pack.nombre}</strong>
+                  <small>{pack.club_nombre} · {pack.tipo === 'cancha' ? 'Cancha' : 'Clases'}</small>
+                </div>
+                <span>${Number(pack.precio).toLocaleString('es-AR')}</span>
+              </div>
+              <button type="button" className="primary-btn small-btn" onClick={() => comprarPack(pack.id)}>
+                Comprar
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel">
+        <div className="section-header">
+          <h3>Mis packs</h3>
+        </div>
+        <div className="booking-list">
+          {misPacks.map((compra) => (
+            <div key={compra.id} className="booking-row">
+              <div>
+                <strong>{compra.pack_nombre}</strong>
+                <p>{compra.creditos_restantes} de {compra.creditos_totales} disponibles</p>
+              </div>
+              <span className="booking-status confirmada">Vence {compra.vence_en}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
       case 'Perfil':
         return (
           <div className="tab-content">
@@ -1514,15 +1944,6 @@ function App() {
       default:
         return (
           <>
-            <section className="hero-banner">
-              <div>
-                <p className="eyebrow light">Premium</p>
-                <h2>Descubre rivales y canchas cercanas</h2>
-                <p>Filtra por nivel, horario y estilo de juego para reservar en pocos clics.</p>
-              </div>
-              <button type="button" className="primary-btn" onClick={() => setActiveTab('Canchas')}>Ver mapa</button>
-            </section>
-
             {activeTab !== 'Inicio' ? (
             <div className="main-grid">
               <div className="main-column">
@@ -1690,6 +2111,32 @@ function App() {
           <div className="tab-content">
             <section className="panel">
               <div className="section-header">
+                <h3>Solicitudes pendientes</h3>
+                <span>{pendingTrainingIds.length}</span>
+              </div>
+              {pendingTrainingIds.length ? (
+                <div className="booking-list">
+                  {pendingTrainingIds.map((trainingId) => {
+                    const session = trainingPool.find((item) => item.id === trainingId);
+                    if (!session) return null;
+                    return (
+                      <div key={trainingId} className="booking-row">
+                        <div>
+                          <strong>Jugador · {session.title || session.specialty}</strong>
+                          <p>{session.time}</p>
+                        </div>
+                        <button type="button" className="primary-btn small-btn" onClick={() => handleTrainingRequest(trainingId, true)}>Confirmar</button>
+                        <button type="button" className="secondary-btn small-btn" onClick={() => handleTrainingRequest(trainingId, false)}>Rechazar</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : <p>No hay solicitudes pendientes.</p>}
+              {trainingNotice ? <p className="training-notice" role="status">{trainingNotice}</p> : null}
+            </section>
+
+            <section className="panel">
+              <div className="section-header">
                 <h3>Clases programadas · {trainerActiveClub.name}</h3>
                 <button type="button" className="link-btn">Ver calendario</button>
               </div>
@@ -1841,6 +2288,12 @@ function App() {
                   <label>Hasta
                     <input type="time" value={tournamentDraft.to} onChange={(event) => setTournamentDraft((current) => ({ ...current, to: event.target.value }))} />
                   </label>
+                  <label>Precio de inscripción
+                    <input value={tournamentDraft.price} onChange={(event) => setTournamentDraft((current) => ({ ...current, price: event.target.value }))} placeholder="Ej.: $15.000 por pareja" />
+                  </label>
+                  <label>Premio
+                    <input value={tournamentDraft.prize} onChange={(event) => setTournamentDraft((current) => ({ ...current, prize: event.target.value }))} placeholder="Ej.: $400.000 + trofeos" />
+                  </label>
                   <button type="button" className="primary-btn small-btn" onClick={createTournament}>Verificar y crear</button>
                 </div>
               ) : null}
@@ -1854,6 +2307,7 @@ function App() {
                       <strong>{event.name}</strong>
                       <p>{event.displayDate || event.date} · {event.court}</p>
                       {event.from ? <small>{event.from} - {event.to} · {event.clubName}</small> : null}
+                      {event.price ? <small>Inscripción: {event.price} · Premio: {event.prize}</small> : null}
                     </div>
                     <span>{event.teams} equipos</span>
                     <span className="booking-status pendiente">{event.status}</span>
@@ -2265,7 +2719,28 @@ function App() {
                 <input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} required />
               </label>
               <label>Contraseña
-                <input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} required />
+                <span className="password-control">
+                  <input
+                    type={showAuthPassword ? 'text' : 'password'}
+                    value={authPassword}
+                    onChange={(event) => setAuthPassword(event.target.value)}
+                    autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-visibility-btn"
+                    aria-label={showAuthPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-pressed={showAuthPassword}
+                    onClick={() => setShowAuthPassword((visible) => !visible)}
+                  >
+                    {showAuthPassword ? (
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 9 4 10 7-.4 1.3-1.3 2.6-2.5 3.6M6.2 6.2C4 7.5 2.5 9.4 2 12c1 3 5 7 10 7 1 0 2-.2 2.9-.5" /></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+                    )}
+                  </button>
+                </span>
               </label>
               {authMode === 'register' ? (
                 <label>Ingresar como
@@ -2387,6 +2862,55 @@ function App() {
       </div>
     );
   }
+  const getTopbarTitle = () => {
+  if (selectedRole === 'jugador') {
+    const playerTitles = {
+      Inicio: 'Busca tu próximo partido',
+      Buscar: 'Buscar',
+      Canchas: 'Canchas',
+      Entrenamiento: 'Entrenamiento',
+      Torneos: 'Torneos',
+      Packs: 'Packs',
+      Perfil: 'Mi perfil',
+    };
+    return playerTitles[activeTab] || 'Busca tu próximo partido';
+  }
+
+  if (selectedRole === 'club') {
+    const clubTitles = {
+      Inicio: `Panel · ${selectedClub.name}`,
+      Canchas: 'Configurador de canchas',
+      Reservas: 'Reservas',
+      Packs: 'Packs',
+      Perfil: 'Perfil del club',
+    };
+    return clubTitles[activeTab] || `Panel · ${selectedClub.name}`;
+  }
+
+  if (selectedRole === 'entrenador') {
+    const trainerTitles = {
+      Inicio: `Panel · ${trainerActiveClub.name}`,
+      Clases: 'Clases',
+      Canchas: 'Reservar cancha',
+      Reservas: 'Mis reservas',
+      Perfil: 'Mi perfil',
+    };
+    return trainerTitles[activeTab] || `Panel · ${trainerActiveClub.name}`;
+  }
+
+  if (selectedRole === 'torneos') {
+    const tournamentTitles = {
+      Inicio: 'Panel del club',
+      Torneos: 'Torneos',
+      Canchas: 'Canchas',
+      Inscripciones: 'Inscripciones',
+      Perfil: 'Mi perfil',
+    };
+    return tournamentTitles[activeTab] || 'Panel del club';
+  }
+
+  return 'Panel del club';
+};
 
   const renderRoleContent = () => {
     if (selectedRole === 'club') return renderClubContent();
@@ -2420,7 +2944,7 @@ function App() {
               onClick={() => {
                 setActiveTab(item);
                 setShowAdvancedFilters(item === 'Buscar');
-                if (item === 'Inicio') setAdvancedFilterType('Pool de partidos');
+                if (item === 'Inicio') setAdvancedFilterType('Partidos');
               }}
             >
               {item}
@@ -2438,13 +2962,21 @@ function App() {
       <main className="content-area">
         <header className="topbar">
           <div>
-            <p className="eyebrow">Bienvenido</p>
-            <h1>{selectedRole === 'jugador' ? 'Busca tu próximo partido' : selectedRole === 'club' ? `Panel · ${selectedClub.name}` : selectedRole === 'entrenador' ? `Panel · ${trainerActiveClub.name}` : 'Panel del club'}</h1>
+            <p className="eyebrow">
+              {selectedRole === 'jugador' && authenticatedUser?.nombre
+                ? `Bienvenido, ${authenticatedUser.nombre}`
+                : 'Bienvenido'}
+            </p>
+            <h1>{getTopbarTitle()}</h1>
           </div>
 
           <div className="topbar-tools">
-            <button type="button" className="link-btn" onClick={handleLogout}>
-              Volver al logueo
+            <button type="button" className="icon-btn" onClick={handleLogout} aria-label="Volver al logueo" title="Volver al logueo">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
             </button>
           </div>
         </header>
@@ -2461,7 +2993,7 @@ function App() {
             onClick={() => {
               setActiveTab(item);
               setShowAdvancedFilters(item === 'Buscar');
-              if (item === 'Inicio') setAdvancedFilterType('Pool de partidos');
+              if (item === 'Inicio') setAdvancedFilterType('Partidos');
             }}
             aria-label={item}
             title={item}

@@ -7,6 +7,7 @@ import { query } from './db.js';
 
 const createdEmails = [];
 const createdReservationIds = [];
+const createdMatchIds = [];
 const createdClassIds = [];
 
 const nextReservationDate = (offsetDays = 0) => {
@@ -53,6 +54,14 @@ async function cleanupCreatedReservations() {
   createdReservationIds.length = 0;
 }
 
+async function cleanupCreatedMatches() {
+  if (!createdMatchIds.length) return;
+
+  const ids = [...new Set(createdMatchIds)];
+  await query('DELETE FROM partidos WHERE id IN (?)', [ids]);
+  createdMatchIds.length = 0;
+}
+
 async function cleanupCreatedClasses() {
   if (!createdClassIds.length) return;
 
@@ -62,9 +71,94 @@ async function cleanupCreatedClasses() {
 }
 
 afterEach(async () => {
+  await cleanupCreatedMatches();
   await cleanupCreatedClasses();
   await cleanupCreatedReservations();
   await cleanupCreatedUsers();
+});
+
+describe('Partidos', () => {
+  it('rechaza publicar un partido en una cancha cerrada existente en MySQL', async () => {
+    const [court] = await query("SELECT id FROM canchas WHERE estado = 'Cerrada' ORDER BY id LIMIT 1");
+    expect(court).toBeTruthy();
+
+    const token = signToken({ id: 1, rol: 'jugador' });
+    const response = await request(app)
+      .post('/api/partidos')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        cancha_id: court.id,
+        categoria: '6ta',
+        genero: 'femenino',
+        fecha: nextReservationDate(62),
+        hora: '18:00',
+      });
+
+    expect(response.status).toBe(409);
+    expect(response.body.message).toBe('La cancha no está disponible');
+  });
+
+  it('persists matches, lists them to authenticated players, and only lets the owner cancel', async () => {
+    const owner = await createUser({ rol: 'jugador' });
+    const otherPlayer = await createUser({ rol: 'jugador' });
+    const ownerToken = signToken(owner);
+    const otherToken = signToken(otherPlayer);
+    const fecha = nextReservationDate(60);
+    const response = await request(app)
+      .post('/api/partidos')
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ cancha_id: 1, categoria: '6ta', genero: 'femenino', fecha, hora: '18:00' });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({
+      cancha_id: 1,
+      categoria: '6ta',
+      genero: 'femenino',
+      fecha,
+      hora: '18:00:00',
+      estado: 'Buscando rival',
+      es_propio: true,
+    });
+    createdMatchIds.push(response.body.id);
+
+    const ownerList = await request(app)
+      .get('/api/partidos')
+      .set('Authorization', `Bearer ${ownerToken}`);
+    const otherCancel = await request(app)
+      .delete(`/api/partidos/${response.body.id}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+    const ownerCancel = await request(app)
+      .delete(`/api/partidos/${response.body.id}`)
+      .set('Authorization', `Bearer ${ownerToken}`);
+    const finalList = await request(app)
+      .get('/api/partidos')
+      .set('Authorization', `Bearer ${ownerToken}`);
+
+    expect(ownerList.body.some((partido) => partido.id === response.body.id && partido.es_propio)).toBe(true);
+    expect(otherCancel.status).toBe(404);
+    expect(ownerCancel.status).toBe(204);
+    expect(finalList.body.some((partido) => partido.id === response.body.id)).toBe(false);
+  });
+
+  it('requires authentication and rejects court-time conflicts', async () => {
+    const unauthenticated = await request(app).get('/api/partidos');
+    expect(unauthenticated.status).toBe(401);
+
+    const player = await createUser({ rol: 'jugador' });
+    const token = signToken(player);
+    const fecha = nextReservationDate(61);
+    const reservation = await request(app)
+      .post('/api/reservas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ cancha_id: 1, fecha, hora: '19:00' });
+    createdReservationIds.push(reservation.body.id);
+
+    const conflict = await request(app)
+      .post('/api/partidos')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ cancha_id: 1, categoria: '6ta', genero: 'femenino', fecha, hora: '19:00' });
+    expect(conflict.status).toBe(409);
+  });
 });
 
 describe('GET /api/health', () => {
@@ -326,6 +420,35 @@ describe('PATCH /api/canchas/:id', () => {
 });
 
 describe('Reservas', () => {
+  it('reports court availability without returning reservation details', async () => {
+    const registroJugador = await request(app).post('/api/auth/registro').send({
+      nombre: 'Jugador Disponibilidad',
+      email: `reserva-disponibilidad-${Date.now()}@example.com`,
+      password: 'Pass123!',
+      rol: 'jugador',
+    });
+    const token = registroJugador.body.token;
+    const fecha = nextReservationDate(30);
+    const reservation = await request(app)
+      .post('/api/reservas')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ cancha_id: 1, fecha, hora: '18:00' });
+    createdReservationIds.push(reservation.body.id);
+
+    const occupied = await request(app)
+      .get('/api/reservas/disponibilidad')
+      .query({ cancha_id: 1, fecha, hora: '18:00' })
+      .set('Authorization', `Bearer ${token}`);
+    const free = await request(app)
+      .get('/api/reservas/disponibilidad')
+      .query({ cancha_id: 1, fecha, hora: '19:00' })
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(occupied.status).toBe(200);
+    expect(occupied.body).toEqual({ available: false });
+    expect(free.body).toEqual({ available: true });
+  });
+
   it('crea una reserva válida', async () => {
     const registroJugador = await request(app).post('/api/auth/registro').send({
       nombre: 'Jugador Reserva',

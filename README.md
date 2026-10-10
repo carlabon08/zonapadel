@@ -32,7 +32,7 @@ flowchart TB
 
 	subgraph Datos[Persistencia]
 		MYSQL[(MySQL zonapadel)]
-		TABLES[usuarios · clubes · canchas<br/>entrenador_clubes · reservas · clases]
+		TABLES[usuarios · clubes · canchas<br/>entrenador_clubes · reservas · partidos · clases]
 		MYSQL --- TABLES
 	end
 
@@ -158,7 +158,7 @@ El rol `torneos` puede consultar disponibilidad y bloquear canchas para un event
 
 - **Celular:** contiene la interfaz React compilada. No necesita instalar MySQL.
 - **API:** servidor Node.js + Express. Valida usuarios, permisos, clubes y conflictos de reservas.
-- **Base de datos:** MySQL centralizado. Guarda usuarios, clubes, canchas, reservas y clases de forma persistente.
+- **Base de datos:** MySQL centralizado. Guarda usuarios, clubes, canchas, reservas, partidos y clases de forma persistente.
 - **Autenticacion:** JWT. La app envia el token en `Authorization: Bearer <token>`.
 
 La app movil nunca debe conectarse directamente a MySQL. Las credenciales de la base de datos permanecen en el servidor y el celular consume la API.
@@ -239,6 +239,14 @@ source C:/ruta/al/proyecto/apps/server/sql/schema.sql;
 ```
 
 El script crea la base `zonapadel`, sus tablas y tres clubes de prueba. Se puede ejecutar mas de una vez; los clubes existentes no se duplican.
+
+En instalaciones existentes, aplicar también las migraciones pendientes. Para habilitar los partidos persistidos, ejecutar desde el cliente MySQL:
+
+```sql
+source C:/ruta/al/proyecto/apps/server/sql/migrations/001_create_partidos.sql;
+```
+
+Esta migración agrega la tabla de partidos sin borrar datos existentes.
 
 ## Variables de entorno
 
