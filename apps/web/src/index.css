@@ -2451,7 +2451,7 @@ h3 {
 @media (max-width: 720px) {
   .court-filter-fields {
     display: grid;
-    grid-template-columns: repeat(96, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: end;
     gap: 12px 8px;
   }
@@ -2471,9 +2471,9 @@ h3 {
     flex: initial;
   }
 
-  .court-filter-fields .court-type-field { grid-column: span 56; }
-  .court-filter-fields .court-date-field { grid-column: span 40; }
-  .court-filter-fields .court-time-field { grid-column: span 35; }
+  .court-filter-fields .court-time-field {
+    width: 90%;
+  }
 
   .court-filter-fields .court-date-field input {
     width: 100%;
