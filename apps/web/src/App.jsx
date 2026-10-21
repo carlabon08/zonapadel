@@ -380,7 +380,7 @@ function App() {
   });
   const [matchPool, setMatchPool] = useState(demoMatches);
   const [showMatchForm, setShowMatchForm] = useState(false);
-  const [matchDraft, setMatchDraft] = useState({ courtId: '', category: '', date: '', time: '' });
+  const [matchDraft, setMatchDraft] = useState({ courtId: '', category: '', date: '', dateText: '', time: '' });
   const [matchNeedDrafts, setMatchNeedDrafts] = useState({});
   const [clubPendingMatches, setClubPendingMatches] = useState([]);
   const [clubMatchNotice, setClubMatchNotice] = useState('');
@@ -794,7 +794,7 @@ useEffect(() => {
   };
 
   const handleReserveClick = () => {
-    setMatchDraft({ courtId: '', category: '', date: '', time: '' });
+    setMatchDraft({ courtId: '', category: '', date: '', dateText: '', time: '' });
     setMatchNotice('');
     setShowMatchForm(true);
   };
@@ -1430,7 +1430,7 @@ const crearPack = async () => {
                           </select>
                         </label>
                         <label className="field-date">Fecha
-                          <input type="date" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha del partido" />
+                          <input type="date" lang="es-AR" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha del partido" />
                         </label>
                         <label className="field-time">Desde
                           <input type="time" value={draftCourtFilters.from} onChange={(event) => updateCourtFilter('from', event.target.value)} aria-label="Hora inicial del partido" />
@@ -1438,8 +1438,8 @@ const crearPack = async () => {
                         <label className="field-time">Hasta
                           <input type="time" value={draftCourtFilters.to} onChange={(event) => updateCourtFilter('to', event.target.value)} aria-label="Hora final del partido" />
                         </label>
-                        <label className="field-xs">Nivel
-                          <select value={selectedPlayerLevel} onChange={(event) => setSelectedPlayerLevel(event.target.value)} aria-label="Nivel del partido">
+                        <label className="field-xs">Categoría
+                          <select value={selectedPlayerLevel} onChange={(event) => setSelectedPlayerLevel(event.target.value)} aria-label="Categoría del partido">
                             {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
                           </select>
                         </label>
@@ -1618,19 +1618,21 @@ const crearPack = async () => {
                     </select>
                   </label>
                   <label className="match-date-field">Fecha
-                    <input
-                      type="date"
-                      lang="es-AR"
-                      aria-label="Fecha del nuevo partido"
-                      min={toLocalDateInputValue(matchAvailabilityNow)}
-                      value={matchDraft.date}
-                      onChange={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value, time: '' }))}
-                      onInput={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value, time: '' }))}
-                      required
-                    />
-                    <small className="match-date-format">
-                      {matchDraft.date ? formatFilterDate(matchDraft.date) : 'dd/mm/aaaa'}
-                    </small>
+                    <span className="match-date-control">
+                      <span className="match-date-value">{matchDraft.date ? formatFilterDate(matchDraft.date) : 'dd/mm/aaaa'}</span>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2" /><path d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17" /></svg>
+                      <input
+                        className="match-date-native-input"
+                        type="date"
+                        lang="es-AR"
+                        aria-label="Fecha del nuevo partido"
+                        min={toLocalDateInputValue(matchAvailabilityNow)}
+                        value={matchDraft.date}
+                        onChange={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value, time: '' }))}
+                        onInput={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value, time: '' }))}
+                        required
+                      />
+                    </span>
                   </label>
                   <label className="match-time-field">Horario disponible
                     <select
@@ -1789,32 +1791,23 @@ const crearPack = async () => {
             <section className="panel">
               <div className="section-header">
                 <h3>Mapa de canchas</h3>
-                <button type="button" className="link-btn">Cerca de ti</button>
+                <button type="button" className="primary-btn small-btn" onClick={() => setActiveTab('Inicio')}>Volver a Inicio</button>
               </div>
 
               <div className="map-card">
-                {rankedCourtStates.map((court) => (
-                  <button
-                    key={court.id}
-                    type="button"
-                    className={selectedCourt.id === court.id ? 'map-pin active' : 'map-pin'}
-                    style={{ left: court.mapPosition.left, top: court.mapPosition.top }}
-                    onClick={() => { setSelectedCourt(court); setShowAllCourts(false); }}
-                    aria-label={`Seleccionar ${court.name}`}
-                    title={court.name}
-                  />
-                ))}
-                <div className="map-center">
-                  <span>{selectedCourt.name}</span>
-                  <strong>{selectedCourt.distance}</strong>
-                </div>
-                <div className="map-actions">
-                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'google')}>
-                    Google Maps
-                  </button>
-                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'apple')}>
-                    Apple Maps
-                  </button>
+                <iframe
+                  title={`Mapa de ${selectedCourt.name}, ${selectedCourt.club}`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(`${selectedCourt.name}, ${selectedCourt.club}, ${selectedCourtClub.city}`)}&output=embed`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+              <div className="map-actions">
+                <span>{selectedCourt.name} · {selectedCourt.club} · {selectedCourt.distance}</span>
+                <div className="map-actions-buttons">
+                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'google')}>Abrir Google Maps</button>
+                  <button type="button" className="mini-map-btn" onClick={() => openMaps(selectedCourt, 'apple')}>Apple Maps</button>
                 </div>
               </div>
 
@@ -3035,9 +3028,21 @@ const crearPack = async () => {
         <div className="auth-card">
           <div className="brand-wrap">
             <span className="brand-badge">ZP</span>
-            <div>
+            <div className="auth-brand-copy">
               <p className="eyebrow">ZonaPadel</p>
-              <h1>Tu red de pádel</h1>
+              <div className="theme-picker auth-theme-picker" aria-label="Elegir color">
+                {userThemes.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    className={selectedTheme === theme.id ? 'theme-pill active' : 'theme-pill'}
+                    onClick={() => setSelectedTheme(theme.id)}
+                    style={{ background: selectedTheme === theme.id ? `linear-gradient(135deg, ${theme.accent}, ${theme.accentAlt})` : 'transparent' }}
+                  >
+                    {theme.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -3094,14 +3099,16 @@ const crearPack = async () => {
             </form>
           ) : null}
 
-          <h2>{isClubSelector ? 'Elegí tu club' : isTrainerClubSelector ? 'Elegí los clubes donde trabajás' : '¿Cómo quieres entrar?'}</h2>
-          <p className="subtitle">
-            {isClubSelector
-              ? 'Seleccioná la entidad del club para entrar directo a sus reservas y calendario por cancha.'
-              : isTrainerClubSelector
-                ? 'Elige los clubes con los que prestás servicios para poder reservar canchas desde allí.'
-                : 'Elige tu perfil para descubrir jugadores, canchas y torneos según tu estilo de juego.'}
-          </p>
+          {isClubSelector || isTrainerClubSelector ? (
+            <>
+              <h2>{isClubSelector ? 'Elegí tu club' : 'Elegí los clubes donde trabajás'}</h2>
+              <p className="subtitle">
+                {isClubSelector
+                  ? 'Seleccioná la entidad del club para entrar directo a sus reservas y calendario por cancha.'
+                  : 'Elige los clubes con los que prestás servicios para poder reservar canchas desde allí.'}
+              </p>
+            </>
+          ) : null}
 
           {isClubSelector || isTrainerClubSelector ? (
             <div className="club-selector-grid">
@@ -3160,39 +3167,22 @@ const crearPack = async () => {
             <div className="auth-options">
               <button type="button" className="role-card primary" onClick={() => setSelectedRole('jugador')}>
                 <span className="role-title">Soy jugador</span>
-                <span className="role-copy">Perfil deportivo, reserva y partidos de pádel.</span>
               </button>
 
               <button type="button" className="role-card green" onClick={() => setSelectedRole('club')}>
                 <span className="role-title">Soy club</span>
-                <span className="role-copy">Gestiona canchas, reservas y horarios.</span>
               </button>
 
               <button type="button" className="role-card green" onClick={() => setSelectedRole('entrenador')}>
                 <span className="role-title">Soy entrenador</span>
-                <span className="role-copy">Programá clases y reservá canchas desde el móvil.</span>
               </button>
 
               <button type="button" className="role-card green" onClick={() => setSelectedRole('torneos')}>
                 <span className="role-title">Torneos</span>
-                <span className="role-copy">Organizá competiciones y bloqueá canchas.</span>
               </button>
             </div>
           )}
 
-          <div className="theme-picker">
-            {userThemes.map((theme) => (
-              <button
-                key={theme.id}
-                type="button"
-                className={selectedTheme === theme.id ? 'theme-pill active' : 'theme-pill'}
-                onClick={() => setSelectedTheme(theme.id)}
-                style={{ background: selectedTheme === theme.id ? `linear-gradient(135deg, ${theme.accent}, ${theme.accentAlt})` : 'transparent' }}
-              >
-                {theme.label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     );
@@ -3200,7 +3190,7 @@ const crearPack = async () => {
   const getTopbarTitle = () => {
   if (selectedRole === 'jugador') {
     const playerTitles = {
-      Inicio: 'Busca tu próximo partido',
+      Inicio: '',
       Buscar: 'Buscar',
       Canchas: 'Canchas',
       Entrenamiento: 'Entrenamiento',
@@ -3208,7 +3198,7 @@ const crearPack = async () => {
       Packs: 'Packs',
       Perfil: 'Mi perfil',
     };
-    return playerTitles[activeTab] || 'Busca tu próximo partido';
+    return playerTitles[activeTab] || '';
   }
 
   if (selectedRole === 'club') {
@@ -3302,7 +3292,7 @@ const crearPack = async () => {
                 ? `Bienvenido, ${authenticatedUser.nombre}`
                 : 'Bienvenido'}
             </p>
-            <h1>{getTopbarTitle()}</h1>
+            {getTopbarTitle() ? <h1>{getTopbarTitle()}</h1> : null}
           </div>
 
           <div className="topbar-tools">

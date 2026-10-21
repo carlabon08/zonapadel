@@ -75,7 +75,8 @@ describe('App', () => {
   it('renders the role selection screen', () => {
     render(<App />);
 
-    expect(screen.getByText('¿Cómo quieres entrar?')).toBeInTheDocument();
+    expect(screen.queryByText('¿Cómo quieres entrar?')).not.toBeInTheDocument();
+    expect(screen.queryByText('Elige tu perfil para descubrir jugadores, canchas y torneos según tu estilo de juego.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Soy jugador/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Soy club/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Soy entrenador/i })).toBeInTheDocument();
@@ -146,12 +147,13 @@ describe('App', () => {
     expect(screen.getByRole('tab', { name: 'Canchas' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Jugadores' })).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Género del partido' })).toHaveValue('femenino');
+    expect(screen.getByLabelText('Fecha del partido')).toHaveAttribute('type', 'date');
     expect(screen.getByText('Jugadores disponibles dentro de un radio de 10 km.')).toBeInTheDocument();
     expect(screen.queryByText('Agustín Tapia')).not.toBeInTheDocument();
     expect(screen.getAllByText('Delfi Brea').length).toBeGreaterThan(0);
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Género del partido' }), { target: { value: 'mixto' } });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Nivel del partido' }), { target: { value: '7ma' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Categoría del partido' }), { target: { value: '7ma' } });
 
     fireEvent.click(screen.getByRole('tab', { name: 'Jugadores' }));
     expect(screen.getByRole('combobox', { name: 'Categoría del jugador' })).toBeInTheDocument();
@@ -188,6 +190,9 @@ describe('App', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /Inicio/ })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Ver mapa' }));
     expect(screen.getByRole('heading', { name: 'Mapa de canchas' })).toBeInTheDocument();
+    expect(screen.getByTitle('Mapa de Cancha 1, Club del Padel Norte')).toHaveAttribute('src', expect.stringContaining('output=embed'));
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a Inicio' }));
+    expect(screen.queryByRole('heading', { name: 'Busca tu próximo partido' })).not.toBeInTheDocument();
   });
 
   it('filters players by category, court side, and broad skill level', () => {
@@ -244,7 +249,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: /Soy jugador/i }));
     fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
     fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getAllByLabelText('Categoría del partido').at(-1), { target: { value: '5ta' } });
     fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
     await waitFor(() => expect(screen.getByRole('option', { name: '20:00' })).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
@@ -263,7 +268,7 @@ describe('App', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/partidos', expect.anything()));
     fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
     fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getAllByLabelText('Categoría del partido').at(-1), { target: { value: '5ta' } });
     fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
     await waitFor(() => expect(screen.getByRole('option', { name: '20:00' })).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
@@ -282,7 +287,7 @@ describe('App', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/partidos', expect.anything()));
     fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
     fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getAllByLabelText('Categoría del partido').at(-1), { target: { value: '5ta' } });
     fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
     await waitFor(() => expect(screen.getByRole('option', { name: '20:00' })).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
@@ -307,7 +312,7 @@ describe('App', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/partidos', expect.anything()));
     fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
     fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+    fireEvent.change(screen.getAllByLabelText('Categoría del partido').at(-1), { target: { value: '5ta' } });
     fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
     await waitFor(() => expect(screen.getByRole('option', { name: '20:00' })).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
@@ -360,7 +365,7 @@ describe('App', () => {
     const publishMatch = async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Crear partido' }));
       fireEvent.change(screen.getByLabelText('Cancha del partido'), { target: { value: '1' } });
-      fireEvent.change(screen.getByLabelText('Categoría del partido'), { target: { value: '5ta' } });
+      fireEvent.change(screen.getAllByLabelText('Categoría del partido').at(-1), { target: { value: '5ta' } });
       fireEvent.change(screen.getByLabelText('Fecha del nuevo partido'), { target: { value: '2026-10-20' } });
       await waitFor(() => expect(screen.getByRole('option', { name: '20:00' })).toBeInTheDocument());
       fireEvent.change(screen.getByLabelText('Hora del partido'), { target: { value: '20:00' } });
