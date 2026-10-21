@@ -20,10 +20,47 @@ const mapStoredMatch = (match) => ({
   time: String(match.hora).slice(0, 5),
   courtId: match.cancha_id,
   court: match.cancha,
-  missingPlayers: match.jugadores_faltantes || 1,
-  status: match.estado,
+  missingPlayers: match.jugadores_faltantes ?? null,
+  driveMissing: Number(match.drive_faltantes ?? 0),
+  revesMissing: Number(match.reves_faltantes ?? 0),
+  status: match.estado === 'Publicada'
+    ? 'Pendiente de confirmación del club'
+    : match.estado === 'Confirmada' && Number(match.jugadores_faltantes) > 0
+      ? 'Buscando rival'
+      : match.estado,
   createdByCurrentUser: Boolean(match.es_propio),
 });
+
+const toLocalDateInputValue = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getCandidateMatchSlots = (court, date, now, matches, tournaments) => {
+  if (!court) return [];
+  const today = toLocalDateInputValue(now);
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  return court.slots.filter((slot) => {
+    if (date === today && slot <= currentTime) return false;
+    const matchConflict = matches.some((match) =>
+      match.status === 'Confirmada'
+      && Number(match.courtId) === court.id
+      && match.date === date
+      && match.time === slot
+    );
+    const tournamentConflict = tournaments.some((tournament) =>
+      String(tournament.courtId) === String(court.id)
+      && tournament.date === date
+      && tournament.status !== 'Cancelado'
+      && slot >= tournament.from
+      && slot < tournament.to
+    );
+    return !matchConflict && !tournamentConflict;
+  });
+};
 
 const navIcons = {
   Inicio: 'home',
@@ -125,10 +162,10 @@ const courts = [
 ];
 
 const players = [
-  { id: 1, name: 'Agustín Tapia', gender: 'masculino', level: '7ma', distanceKm: 8, style: 'Ataque / velocidad', availability: 'Hoy 18:00-21:00', city: 'Buenos Aires', accent: '#7dd3fc', phoneVisible: false, phone: '+5491123456789' },
-  { id: 2, name: 'Arturo Coelho', gender: 'masculino', level: '5ta', distanceKm: 14, style: 'Volea / control', availability: 'Mañana 19:00', city: 'Madrid', accent: '#dfeef9', phoneVisible: true, phone: '+34612345678' },
-  { id: 3, name: 'Delfi Brea', gender: 'femenino', level: '6ta', distanceKm: 6, style: 'Defensa / precisión', availability: 'Viernes 20:00', city: 'Barcelona', accent: '#f9a8d4', phoneVisible: true, phone: '+34698765432' },
-  { id: 4, name: 'Gema Triay', gender: 'femenino', level: '5ta', distanceKm: 11, style: 'All court / potencia', availability: 'Sábado 17:30', city: 'Valencia', accent: '#f4d7d7', phoneVisible: true, phone: '+34654321876' },
+  { id: 1, name: 'Agustín Tapia', gender: 'masculino', level: '7ma', position: 'drive', skillBand: 'alta', distanceKm: 8, style: 'Ataque / velocidad', availability: 'Hoy 18:00-21:00', city: 'Buenos Aires', accent: '#7dd3fc', phoneVisible: false, phone: '+5491123456789' },
+  { id: 2, name: 'Arturo Coelho', gender: 'masculino', level: '5ta', position: 'drive', skillBand: 'alta', distanceKm: 14, style: 'Volea / control', availability: 'Mañana 19:00', city: 'Madrid', accent: '#dfeef9', phoneVisible: true, phone: '+34612345678' },
+  { id: 3, name: 'Delfi Brea', gender: 'femenino', level: '6ta', position: 'reves', skillBand: 'intermedia', distanceKm: 6, style: 'Defensa / precisión', availability: 'Viernes 20:00', city: 'Barcelona', accent: '#f9a8d4', phoneVisible: true, phone: '+34698765432' },
+  { id: 4, name: 'Gema Triay', gender: 'femenino', level: '5ta', position: 'reves', skillBand: 'alta', distanceKm: 11, style: 'All court / potencia', availability: 'Sábado 17:30', city: 'Valencia', accent: '#f4d7d7', phoneVisible: true, phone: '+34654321876' },
 ];
 
 const tournaments = [
@@ -325,6 +362,7 @@ function App() {
   const [authError, setAuthError] = useState('');
   const [selectedClubId, setSelectedClubId] = useState(null);
   const [trainerServiceClubs, setTrainerServiceClubs] = useState([]);
+  const [isTrainerClubSetupComplete, setIsTrainerClubSetupComplete] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('rosa');
   const [selectedAvatarId, setSelectedAvatarId] = useState('delfi-brea');
   const [selectedShot, setSelectedShot] = useState('drive');
@@ -343,9 +381,17 @@ function App() {
   const [matchPool, setMatchPool] = useState(demoMatches);
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [matchDraft, setMatchDraft] = useState({ courtId: '', category: '', date: '', time: '' });
+  const [matchNeedDrafts, setMatchNeedDrafts] = useState({});
+  const [clubPendingMatches, setClubPendingMatches] = useState([]);
+  const [clubMatchNotice, setClubMatchNotice] = useState('');
   const [matchNotice, setMatchNotice] = useState('');
+  const [matchAvailabilityNow, setMatchAvailabilityNow] = useState(() => new Date());
+  const [matchAvailableSlots, setMatchAvailableSlots] = useState([]);
+  const [isCheckingMatchAvailability, setIsCheckingMatchAvailability] = useState(false);
+  const [matchAvailabilityError, setMatchAvailabilityError] = useState('');
   const [matchPreferences, setMatchPreferences] = useState({
-    categoria: '6ta', genero: 'femenino', ciudad: 'Funes', disponible: false,
+    categoria: '6ta', genero: 'femenino', ciudad: 'Funes', dia_semana: 'vie',
+    hora_desde: '18:00', hora_hasta: '22:00', disponible: false,
     telefono_whatsapp: '', whatsapp_consentimiento: false,
   });
   const [matchNotifications, setMatchNotifications] = useState([]);
@@ -375,6 +421,10 @@ function App() {
   const verifiedPlayerLevel = '6ta';
   const availablePlayerLevels = ['5ta', '6ta', '7ma'];
   const [selectedPlayerLevel, setSelectedPlayerLevel] = useState(verifiedPlayerLevel);
+  const playerSearchCategories = ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va'];
+  const [playerSearchCategory, setPlayerSearchCategory] = useState('');
+  const [playerSearchPosition, setPlayerSearchPosition] = useState('');
+  const [playerSearchSkillBand, setPlayerSearchSkillBand] = useState('');
   const [includedClubIds, setIncludedClubIds] = useState([]);
   const [requestedCoachIds, setRequestedCoachIds] = useState([]);
   const [joinedTournamentIds, setJoinedTournamentIds] = useState([]);
@@ -450,8 +500,13 @@ useEffect(() => {
     && (match.gender === selectedGender || match.gender === 'mixto')
     && match.level === selectedPlayerLevel
   );
+  const matchDraftCourt = courtStates.find((court) => String(court.id) === matchDraft.courtId);
   const visiblePlayers = players.filter((player) =>
-    (selectedGender === 'mixto' || player.gender === selectedGender) && player.level === selectedPlayerLevel
+    (selectedGender === 'mixto' || player.gender === selectedGender)
+    && (!playerSearchCategory || player.level === playerSearchCategory)
+    && (!playerSearchPosition || playerSearchPosition === 'indistinto'
+      || player.position === playerSearchPosition || player.position === 'indistinto')
+    && (!playerSearchSkillBand || player.skillBand === playerSearchSkillBand)
   );
   const visibleCalendarCourts = calendarSchedule.filter((court) =>
     calendarStatusFilter === 'Todos' || court.status === calendarStatusFilter
@@ -577,7 +632,14 @@ useEffect(() => {
       .then((response) => response.ok ? response.json() : null)
       .then((preferences) => {
         if (active && preferences) {
-          setMatchPreferences(preferences);
+          const hasSavedWindow = Boolean(preferences.dia_semana && preferences.hora_desde && preferences.hora_hasta);
+          setMatchPreferences({
+            ...preferences,
+            dia_semana: preferences.dia_semana || 'vie',
+            hora_desde: String(preferences.hora_desde || '18:00').slice(0, 5),
+            hora_hasta: String(preferences.hora_hasta || '22:00').slice(0, 5),
+            disponible: Boolean(preferences.disponible) && hasSavedWindow,
+          });
           setSelectedPlayerLevel(preferences.categoria);
           setSelectedGender(preferences.genero);
         }
@@ -591,6 +653,81 @@ useEffect(() => {
 
     return () => { active = false; };
   }, [authenticatedUser, selectedRole]);
+
+  useEffect(() => {
+    if (selectedRole !== 'club') return;
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) return;
+
+    let active = true;
+    fetch('/api/partidos/club/pendientes', { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Could not load club matches');
+        return response.json();
+      })
+      .then((matches) => { if (active) setClubPendingMatches(matches); })
+      .catch(() => {
+        if (active) {
+          setClubPendingMatches([]);
+          setClubMatchNotice('No se pudieron cargar los partidos pendientes del club.');
+        }
+      });
+
+    return () => { active = false; };
+  }, [authenticatedUser, selectedRole]);
+
+  useEffect(() => {
+    if (!showMatchForm) return undefined;
+    const timerId = window.setInterval(() => setMatchAvailabilityNow(new Date()), 15000);
+    return () => window.clearInterval(timerId);
+  }, [showMatchForm]);
+
+  useEffect(() => {
+    if (!showMatchForm || !matchDraft.courtId || !matchDraft.date) {
+      setMatchAvailableSlots([]);
+      setIsCheckingMatchAvailability(false);
+      setMatchAvailabilityError('');
+      return undefined;
+    }
+
+    const candidateSlots = getCandidateMatchSlots(
+      matchDraftCourt,
+      matchDraft.date,
+      matchAvailabilityNow,
+      matchPool,
+      tournamentEventsList
+    );
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token || !candidateSlots.length) {
+      setMatchAvailableSlots(candidateSlots);
+      setIsCheckingMatchAvailability(false);
+      setMatchAvailabilityError('');
+      return undefined;
+    }
+
+    let active = true;
+    setIsCheckingMatchAvailability(true);
+    setMatchAvailabilityError('');
+    Promise.all(candidateSlots.map(async (slot) => {
+      const query = new URLSearchParams({ cancha_id: matchDraft.courtId, fecha: matchDraft.date, hora: slot });
+      const response = await fetch(`/api/reservas/disponibilidad?${query}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Availability check failed');
+      const { available } = await response.json();
+      return available ? slot : null;
+    }))
+      .then((slots) => { if (active) setMatchAvailableSlots(slots.filter(Boolean)); })
+      .catch(() => {
+        if (active) {
+          setMatchAvailableSlots([]);
+          setMatchAvailabilityError('No se pudo consultar la disponibilidad de la cancha.');
+        }
+      })
+      .finally(() => { if (active) setIsCheckingMatchAvailability(false); });
+
+    return () => { active = false; };
+  }, [showMatchForm, matchDraftCourt, matchDraft.courtId, matchDraft.date, matchAvailabilityNow, matchPool, tournamentEventsList, authenticatedUser]);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -719,7 +856,10 @@ useEffect(() => {
     const club = clubs.find((item) => item.id === court.clubId);
     const courtUnavailable = ['cerrada', 'mantenimiento', 'reservada'].includes(court.status.toLowerCase());
     const matchConflict = matchPool.some((match) =>
-      Number(match.courtId) === court.id && match.date === date && match.time === time
+      match.status === 'Confirmada'
+      && Number(match.courtId) === court.id
+      && match.date === date
+      && match.time === time
     );
     const tournamentConflict = tournamentEventsList.some((tournament) =>
       String(tournament.courtId) === String(court.id)
@@ -736,6 +876,10 @@ useEffect(() => {
 
     if (!court.slots.includes(time) || matchConflict || tournamentConflict) {
       setMatchNotice('Ese horario ya no está disponible para la cancha y fecha elegidas. Seleccioná otro.');
+      return;
+    }
+    if (!matchAvailableSlots.includes(time)) {
+      setMatchNotice(matchAvailabilityError || 'Ese horario no está disponible o todavía no se pudo verificar. Seleccioná otro.');
       return;
     }
 
@@ -769,7 +913,7 @@ useEffect(() => {
       }
 
       setMatchPool((current) => [mapStoredMatch(payload), ...current.filter((match) => match.id !== payload.id)]);
-      setMatchNotice(`Partido publicado. Se notificó a ${payload.notificados || 0} jugadores disponibles en la zona.`);
+      setMatchNotice('Partido publicado. Está pendiente de confirmación del club.');
       setSelectedPlayerLevel(category);
       setShowMatchForm(false);
       setActiveTab('Buscar');
@@ -803,6 +947,62 @@ useEffect(() => {
     }
   };
 
+  const publishMatchPlayerNeed = async (matchId) => {
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) return;
+    const need = matchNeedDrafts[matchId] || { drive: 1, reves: 0 };
+    const driveMissing = Number(need.drive);
+    const revesMissing = Number(need.reves);
+    const missingPlayers = driveMissing + revesMissing;
+    if (missingPlayers > 3) {
+      setMatchNotice('Solo se pueden buscar hasta 3 jugadores adicionales.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/partidos/${matchId}/necesidad-jugadores`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ drive_faltantes: driveMissing, reves_faltantes: revesMissing }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setMatchNotice(payload.message || 'No se pudo publicar la búsqueda de jugadores.');
+        return;
+      }
+      const updatedMatch = mapStoredMatch({ ...payload, es_propio: true });
+      setMatchPool((current) => current.map((match) => match.id === matchId ? updatedMatch : match));
+      setMatchNotice(missingPlayers > 0
+        ? `Búsqueda publicada: ${driveMissing} drive y ${revesMissing} revés. Se notificó a ${payload.notificados || 0} jugadores disponibles en la zona.`
+        : 'Partido confirmado. No se publicó en el pool porque ya tienes los jugadores.');
+    } catch {
+      setMatchNotice('No se pudo publicar la búsqueda de jugadores. Reintentá.');
+    }
+  };
+
+  const reviewClubMatch = async (matchId, decision) => {
+    const token = authenticatedUser?.token || localStorage.getItem('zonapadel_token') || localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/partidos/club/${matchId}/${decision}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = response.status === 204 ? {} : await response.json();
+      if (!response.ok) {
+        setClubMatchNotice(payload.message || 'No se pudo actualizar el partido.');
+        return;
+      }
+      setClubPendingMatches((current) => current.filter((match) => match.id !== matchId));
+      setClubMatchNotice(decision === 'confirmar'
+        ? `Cancha confirmada. Se notificó a ${payload.notificados || 0} jugadores disponibles.`
+        : 'Partido rechazado; el horario queda libre.');
+    } catch {
+      setClubMatchNotice('No se pudo conectar con el servidor.');
+    }
+  };
+
   const handleRoleCourtBooking = (roleLabel, timeLabel) => {
     setCourtStates((current) =>
       current.map((court) =>
@@ -833,6 +1033,7 @@ useEffect(() => {
     setSelectedRole(null);
     setSelectedClubId(null);
     setTrainerServiceClubs([]);
+    setIsTrainerClubSetupComplete(false);
     setActiveTab('Inicio');
     setSelectedCourt(courts[0]);
     setMatchPool(demoMatches);
@@ -1303,17 +1504,26 @@ const crearPack = async () => {
                             <option value="mixto">Mixto</option>
                           </select>
                         </label>
-                        <label>Nivel
-                          <select value={selectedPlayerLevel} onChange={(event) => setSelectedPlayerLevel(event.target.value)} aria-label="Nivel">
-                            {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+                        <label>Categoría
+                          <select value={playerSearchCategory} onChange={(event) => setPlayerSearchCategory(event.target.value)} aria-label="Categoría del jugador">
+                            <option value="">Todas</option>
+                            {playerSearchCategories.map((category) => <option key={category} value={category}>{category}</option>)}
                           </select>
                         </label>
-                        <label>Estilo
-                          <select defaultValue="">
-                            <option value="">Cualquier estilo</option>
-                            <option value="defensa">Defensa</option>
-                            <option value="volea">Volea y red</option>
-                            <option value="ataque">Ataque</option>
+                        <label>Posición
+                          <select value={playerSearchPosition} onChange={(event) => setPlayerSearchPosition(event.target.value)} aria-label="Posición del jugador">
+                            <option value="">Cualquiera</option>
+                            <option value="drive">Drive</option>
+                            <option value="reves">Revés</option>
+                            <option value="indistinto">Indistinto</option>
+                          </select>
+                        </label>
+                        <label>Nivel de juego
+                          <select value={playerSearchSkillBand} onChange={(event) => setPlayerSearchSkillBand(event.target.value)} aria-label="Nivel de juego">
+                            <option value="">Todos</option>
+                            <option value="alta">Alta</option>
+                            <option value="intermedia">Intermedia</option>
+                            <option value="baja">Baja</option>
                           </select>
                         </label>
                         <label>Disponibilidad
@@ -1357,11 +1567,11 @@ const crearPack = async () => {
                         </div>
                         <span>{court.price}</span>
                       </div>
-                      <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                       <div className="slot-row">
                         {court.slots.map((slot) => <span key={slot}>{slot}</span>)}
                       </div>
                       <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>{court.status}</span>
+                      <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                     </button>
                   ))}
                 </div>
@@ -1382,15 +1592,14 @@ const crearPack = async () => {
                     <select
                       aria-label="Cancha del partido"
                       value={matchDraft.courtId}
-                      onChange={(event) => setMatchDraft((current) => ({ ...current, courtId: event.target.value }))}
+                      onChange={(event) => setMatchDraft((current) => ({ ...current, courtId: event.target.value, time: '' }))}
                       required
                     >
                       <option value="">Seleccioná una cancha</option>
-                      {courtStates.map((court) => (
+                      {courtStates.filter((court) => !['cerrada', 'mantenimiento', 'reservada'].includes(court.status.toLowerCase())).map((court) => (
                         <option
                           key={court.id}
                           value={court.id}
-                          disabled={['cerrada', 'mantenimiento', 'reservada'].includes(court.status.toLowerCase())}
                         >
                           {court.club} · {court.name} · {court.status}
                         </option>
@@ -1408,16 +1617,22 @@ const crearPack = async () => {
                       {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
                     </select>
                   </label>
-                  <label>Fecha
+                  <label className="match-date-field">Fecha
                     <input
                       type="date"
+                      lang="es-AR"
                       aria-label="Fecha del nuevo partido"
+                      min={toLocalDateInputValue(matchAvailabilityNow)}
                       value={matchDraft.date}
-                      onChange={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value }))}
+                      onChange={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value, time: '' }))}
+                      onInput={(event) => setMatchDraft((current) => ({ ...current, date: event.target.value, time: '' }))}
                       required
                     />
+                    <small className="match-date-format">
+                      {matchDraft.date ? formatFilterDate(matchDraft.date) : 'dd/mm/aaaa'}
+                    </small>
                   </label>
-                  <label>Horario disponible
+                  <label className="match-time-field">Horario disponible
                     <select
                       aria-label="Hora del partido"
                       value={matchDraft.time}
@@ -1425,10 +1640,12 @@ const crearPack = async () => {
                       required
                     >
                       <option value="">Seleccioná un horario</option>
-                      {courtStates.find((court) => String(court.id) === matchDraft.courtId)?.slots.map((slot) => (
+                      {matchAvailableSlots.map((slot) => (
                         <option key={slot} value={slot}>{slot}</option>
                       ))}
                     </select>
+                    {isCheckingMatchAvailability ? <small>Consultando disponibilidad...</small> : null}
+                    {matchAvailabilityError ? <small role="alert">{matchAvailabilityError}</small> : null}
                   </label>
                   <div className="match-form-actions">
                     <button type="submit" className="primary-btn small-btn" disabled={!matchDraft.courtId || !matchDraft.category || !matchDraft.date || !matchDraft.time}>Publicar partido</button>
@@ -1453,8 +1670,45 @@ const crearPack = async () => {
                       <span className="match-status">{match.status}</span>
                     </div>
                     <p>{match.city} · {match.court ? `${match.court} · ` : ''}{match.level} · {match.date ? formatFilterDate(match.date) : 'Fecha a coordinar'} · {match.time}</p>
-                    <small>Faltan {match.missingPlayers} jugador/es para completar la pareja</small>
+                    <small>{match.missingPlayers == null
+                      ? match.status === 'Confirmada' ? 'Cancha confirmada. Indica si necesitas jugadores adicionales.' : 'Esperando confirmación del club.'
+                      : match.missingPlayers > 0
+                        ? `Faltan ${match.driveMissing || 0} de drive y ${match.revesMissing || 0} de revés`
+                        : 'Ya tenés los jugadores necesarios'}</small>
 
+                    {match.createdByCurrentUser && match.status === 'Confirmada' && match.missingPlayers == null ? (
+                      <div className="match-need-players">
+                        <label>¿Cuántos jugadores de drive faltan?
+                          <select
+                            aria-label={`Jugadores de drive para ${match.court}`}
+                            value={matchNeedDrafts[match.id]?.drive ?? 1}
+                            onChange={(event) => setMatchNeedDrafts((current) => ({
+                              ...current,
+                              [match.id]: { ...(current[match.id] || { drive: 1, reves: 0 }), drive: Number(event.target.value) },
+                            }))}
+                          >
+                            {[0, 1, 2, 3].map((count) => <option key={count} value={count}>{count}</option>)}
+                          </select>
+                        </label>
+                        <label>¿Cuántos jugadores de revés faltan?
+                          <select
+                            aria-label={`Jugadores de revés para ${match.court}`}
+                            value={matchNeedDrafts[match.id]?.reves ?? 0}
+                            onChange={(event) => setMatchNeedDrafts((current) => ({
+                              ...current,
+                              [match.id]: { ...(current[match.id] || { drive: 1, reves: 0 }), reves: Number(event.target.value) },
+                            }))}
+                          >
+                            {[0, 1, 2, 3].map((count) => <option key={count} value={count}>{count}</option>)}
+                          </select>
+                        </label>
+                        <button type="button" className="primary-btn small-btn" onClick={() => publishMatchPlayerNeed(match.id)}>
+                          {(Number(matchNeedDrafts[match.id]?.drive ?? 1) + Number(matchNeedDrafts[match.id]?.reves ?? 0)) > 0 ? 'Buscar jugadores' : 'Confirmar que ya está completo'}
+                        </button>
+                      </div>
+                    ) : null}
+
+                    {match.status === 'Buscando rival' ? (
                     <div className="recipient-picker">
                       <span>Jugadores disponibles en ese horario</span>
                       <div className="recipient-list">
@@ -1470,9 +1724,10 @@ const crearPack = async () => {
                         ))}
                       </div>
                     </div>
+                    ) : null}
 
                     <div className="match-actions">
-                      {nearbyPoolPlayers
+                      {match.status === 'Buscando rival' ? nearbyPoolPlayers
                         .filter((player) => (selectedRecipients[match.id] || []).includes(player.id) && player.phone)
                         .map((player) => (
                           <button
@@ -1484,7 +1739,7 @@ const crearPack = async () => {
                           >
                             WhatsApp · {player.name}
                           </button>
-                        ))}
+                        )) : null}
                       {match.createdByCurrentUser ? (
                         <button
                           type="button"
@@ -1562,6 +1817,7 @@ const crearPack = async () => {
                   </button>
                 </div>
               </div>
+
             </section>
 
             <section className="panel">
@@ -1587,7 +1843,6 @@ const crearPack = async () => {
                       <span>{court.price}</span>
                     </div>
                     <p className="court-club">{court.club}</p>
-                    <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                     <div className="slot-row">
                       {court.slots.map((slot) => (
                         <span key={slot}>{slot}</span>
@@ -1604,6 +1859,7 @@ const crearPack = async () => {
                     >
                       {court.status}
                     </button>
+                    <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                   </button>
                 ))}
               </div>
@@ -1911,7 +2167,7 @@ const crearPack = async () => {
               <div className="profile-details">
                 <div>
                   <label>Disponibilidad</label>
-                  <strong>18:00 - 22:00</strong>
+                  <strong>{matchPreferences.dia_semana || 'Sin configurar'} · {matchPreferences.hora_desde || '—'} - {matchPreferences.hora_hasta || '—'}</strong>
                 </div>
                 <div>
                   <label>Ciudad</label>
@@ -1922,6 +2178,60 @@ const crearPack = async () => {
                   <strong>{players[1].phoneVisible ? '+34 612 345 678' : 'Oculto por privacidad'}</strong>
                 </div>
               </div>
+
+              <form className="match-preferences-form" onSubmit={saveMatchPreferences}>
+                <div className="section-header">
+                  <h3>Disponibilidad para partidos</h3>
+                </div>
+                <label className="preference-availability">
+                  <input
+                    type="checkbox"
+                    checked={matchPreferences.disponible}
+                    onChange={(event) => setMatchPreferences((current) => ({ ...current, disponible: event.target.checked }))}
+                  />
+                  <span>Quiero recibir notificaciones de partidos compatibles</span>
+                </label>
+                <div className="preference-fields">
+                  <label>Día
+                    <select aria-label="Día disponible" value={matchPreferences.dia_semana} onChange={(event) => setMatchPreferences((current) => ({ ...current, dia_semana: event.target.value }))} required>
+                      <option value="lun">Lunes</option>
+                      <option value="mar">Martes</option>
+                      <option value="mie">Miércoles</option>
+                      <option value="jue">Jueves</option>
+                      <option value="vie">Viernes</option>
+                      <option value="sab">Sábado</option>
+                      <option value="dom">Domingo</option>
+                    </select>
+                  </label>
+                  <label>Desde
+                    <input aria-label="Disponible desde" type="time" value={matchPreferences.hora_desde} onChange={(event) => setMatchPreferences((current) => ({ ...current, hora_desde: event.target.value }))} required />
+                  </label>
+                  <label>Hasta
+                    <input aria-label="Disponible hasta" type="time" value={matchPreferences.hora_hasta} onChange={(event) => setMatchPreferences((current) => ({ ...current, hora_hasta: event.target.value }))} required />
+                  </label>
+                  <label>Categoría
+                    <select aria-label="Categoría para partidos" value={matchPreferences.categoria} onChange={(event) => setMatchPreferences((current) => ({ ...current, categoria: event.target.value }))}>
+                      {availablePlayerLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+                    </select>
+                  </label>
+                  <label>Género
+                    <select aria-label="Género para partidos" value={matchPreferences.genero} onChange={(event) => setMatchPreferences((current) => ({ ...current, genero: event.target.value }))}>
+                      <option value="femenino">Femenino</option>
+                      <option value="masculino">Masculino</option>
+                      <option value="mixto">Mixto</option>
+                    </select>
+                  </label>
+                  <label>Ciudad
+                    <input aria-label="Ciudad para partidos" value={matchPreferences.ciudad} onChange={(event) => setMatchPreferences((current) => ({ ...current, ciudad: event.target.value }))} required />
+                  </label>
+                </div>
+                <label className="preference-availability">
+                  <input type="checkbox" checked={matchPreferences.whatsapp_consentimiento} disabled={!matchPreferences.telefono_whatsapp} onChange={(event) => setMatchPreferences((current) => ({ ...current, whatsapp_consentimiento: event.target.checked }))} />
+                  <span>Acepto invitaciones por WhatsApp (opcional)</span>
+                </label>
+                <button type="submit" className="primary-btn small-btn">Guardar disponibilidad</button>
+                {matchPreferencesNotice ? <p className="training-notice" role="status">{matchPreferencesNotice}</p> : null}
+              </form>
             </section>
 
             <section className="panel">
@@ -1969,7 +2279,6 @@ const crearPack = async () => {
                           <span>{court.price}</span>
                         </div>
                         <p className="court-club">{court.club}</p>
-                        <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                         <div className="slot-row">
                           {court.slots.map((slot) => (
                             <span key={slot}>{slot}</span>
@@ -1986,6 +2295,7 @@ const crearPack = async () => {
                         >
                           {court.status}
                         </button>
+                        <span className="court-rating" aria-label={`Valoración ${court.rating} de 5 estrellas`}>★ {court.rating.toFixed(1)} · Opiniones de jugadores</span>
                       </button>
                     ))}
                   </div>
@@ -2485,6 +2795,29 @@ const crearPack = async () => {
           <div className="tab-content">
             <section className="panel">
               <div className="section-header">
+                <h3>Partidos pendientes de confirmación</h3>
+                <span>{clubPendingMatches.length}</span>
+              </div>
+              {clubPendingMatches.length ? (
+                <div className="booking-list">
+                  {clubPendingMatches.map((match) => (
+                    <div key={match.id} className="booking-row">
+                      <div>
+                        <strong>{match.categoria} · {match.genero}</strong>
+                        <p>{match.cancha} · {formatFilterDate(match.fecha)} · {String(match.hora).slice(0, 5)}</p>
+                        <small>El horario no se bloquea hasta confirmar.</small>
+                      </div>
+                      <button type="button" className="primary-btn small-btn" onClick={() => reviewClubMatch(match.id, 'confirmar')}>Confirmar cancha</button>
+                      <button type="button" className="secondary-btn small-btn" onClick={() => reviewClubMatch(match.id, 'rechazar')}>Rechazar</button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p>No hay partidos pendientes de confirmación.</p>}
+              {clubMatchNotice ? <p className="training-notice" role="status">{clubMatchNotice}</p> : null}
+            </section>
+
+            <section className="panel">
+              <div className="section-header">
                 <h3>Reservas por cancha · {selectedClub.name}</h3>
                 <button type="button" className="link-btn">Exportar</button>
               </div>
@@ -2693,9 +3026,9 @@ const crearPack = async () => {
     }
   };
 
-  if (!selectedRole || (selectedRole === 'club' && !selectedClubId) || (selectedRole === 'entrenador' && trainerServiceClubs.length === 0)) {
+  if (!selectedRole || (selectedRole === 'club' && !selectedClubId) || (selectedRole === 'entrenador' && !isTrainerClubSetupComplete)) {
     const isClubSelector = selectedRole === 'club' && !selectedClubId;
-    const isTrainerClubSelector = selectedRole === 'entrenador' && trainerServiceClubs.length === 0;
+    const isTrainerClubSelector = selectedRole === 'entrenador' && !isTrainerClubSetupComplete;
 
     return (
       <div className={`auth-screen theme-${selectedTheme} ${isClubSelector || isTrainerClubSelector ? 'role-green' : ''}`}>
@@ -2709,18 +3042,19 @@ const crearPack = async () => {
           </div>
 
           {!selectedRole && !isClubSelector && !isTrainerClubSelector ? (
-            <form className="login-form" onSubmit={authMode === 'login' ? handleLogin : handleRegister}>
+            <form className="login-form" autoComplete="on" onSubmit={authMode === 'login' ? handleLogin : handleRegister}>
               {authMode === 'register' ? (
                 <label>Nombre
-                  <input value={authName} onChange={(event) => setAuthName(event.target.value)} required />
+                  <input name="name" autoComplete="name" value={authName} onChange={(event) => setAuthName(event.target.value)} required />
                 </label>
               ) : null}
               <label>Email
-                <input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} required />
+                <input name="email" type="email" autoComplete="username" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} required />
               </label>
               <label>Contraseña
                 <span className="password-control">
                   <input
+                    name="password"
                     type={showAuthPassword ? 'text' : 'password'}
                     value={authPassword}
                     onChange={(event) => setAuthPassword(event.target.value)}
@@ -2813,6 +3147,7 @@ const crearPack = async () => {
                   onClick={() => {
                     if (trainerServiceClubs.length > 0) {
                       setSelectedClubId(trainerServiceClubs[0]);
+                      setIsTrainerClubSetupComplete(true);
                       setActiveTab('Inicio');
                     }
                   }}
@@ -2971,6 +3306,36 @@ const crearPack = async () => {
           </div>
 
           <div className="topbar-tools">
+            {selectedRole === 'jugador' && authenticatedUser ? (
+              <div className="match-notifications">
+                <button
+                  type="button"
+                  className="icon-btn notification-bell"
+                  aria-label={`Notificaciones (${matchNotifications.filter((notification) => !notification.leida).length} sin leer)`}
+                  aria-expanded={showMatchNotifications}
+                  onClick={() => setShowMatchNotifications((current) => !current)}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                    <path d="M10 21h4" />
+                  </svg>
+                  {matchNotifications.some((notification) => !notification.leida) ? <span className="notification-count" /> : null}
+                </button>
+                {showMatchNotifications ? (
+                  <div className="notification-popover" aria-label="Notificaciones de partidos">
+                    <strong>Partidos en tu zona</strong>
+                    {matchNotifications.length ? matchNotifications.map((notification) => (
+                      <div key={notification.id} className={notification.leida ? 'notification-item read' : 'notification-item'}>
+                        <span>{notification.mensaje}</span>
+                        {!notification.leida ? (
+                          <button type="button" className="link-btn" onClick={() => markMatchNotificationRead(notification.id)}>Marcar leída</button>
+                        ) : null}
+                      </div>
+                    )) : <p>No tenés avisos nuevos.</p>}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <button type="button" className="icon-btn" onClick={handleLogout} aria-label="Volver al logueo" title="Volver al logueo">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

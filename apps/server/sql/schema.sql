@@ -70,7 +70,10 @@ CREATE TABLE IF NOT EXISTS partidos (
   genero ENUM('femenino', 'masculino', 'mixto') NOT NULL,
   fecha DATE NOT NULL,
   hora TIME NOT NULL,
-  estado ENUM('Buscando rival', 'Cancelado') NOT NULL DEFAULT 'Buscando rival',
+  jugadores_faltantes TINYINT UNSIGNED NULL DEFAULT NULL,
+  drive_faltantes TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  reves_faltantes TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  estado ENUM('Publicada', 'Confirmada', 'Cancelada') NOT NULL DEFAULT 'Publicada',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX partidos_disponibles (estado, fecha, hora),
   INDEX partidos_cancha_horario (cancha_id, fecha, hora, estado),
@@ -78,11 +81,22 @@ CREATE TABLE IF NOT EXISTS partidos (
   FOREIGN KEY (cancha_id) REFERENCES canchas(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS club_usuarios (
+  usuario_id INT NOT NULL,
+  club_id VARCHAR(60) NOT NULL,
+  PRIMARY KEY (usuario_id, club_id),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (club_id) REFERENCES clubes(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS preferencias_partidos (
   jugador_id INT PRIMARY KEY,
   categoria ENUM('5ta', '6ta', '7ma') NOT NULL,
   genero ENUM('femenino', 'masculino', 'mixto') NOT NULL,
   ciudad VARCHAR(120) NOT NULL,
+  dia_semana ENUM('dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab') NULL,
+  hora_desde TIME NULL,
+  hora_hasta TIME NULL,
   disponible BOOLEAN NOT NULL DEFAULT FALSE,
   telefono_whatsapp VARCHAR(24),
   whatsapp_consentimiento BOOLEAN NOT NULL DEFAULT FALSE,

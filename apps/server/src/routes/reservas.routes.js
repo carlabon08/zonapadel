@@ -31,7 +31,7 @@ router.get('/disponibilidad', requireAuth, async (req, res) => {
      WHERE cancha_id = ? AND fecha = ? AND hora = ? AND estado != 'Cancelada'
      UNION ALL
      SELECT id FROM partidos
-     WHERE cancha_id = ? AND fecha = ? AND hora = ? AND estado = 'Buscando rival'
+    WHERE cancha_id = ? AND fecha = ? AND hora = ? AND estado = 'Confirmada'
      LIMIT 1`,
     [cancha_id, fecha, hora, cancha_id, fecha, hora]
   );

@@ -244,9 +244,13 @@ En instalaciones existentes, aplicar también las migraciones pendientes. Para h
 
 ```sql
 source C:/ruta/al/proyecto/apps/server/sql/migrations/001_create_partidos.sql;
+source C:/ruta/al/proyecto/apps/server/sql/migrations/002_match_notifications.sql;
+source C:/ruta/al/proyecto/apps/server/sql/migrations/003_match_confirmation.sql;
+source C:/ruta/al/proyecto/apps/server/sql/migrations/004_match_player_sides.sql;
+source C:/ruta/al/proyecto/apps/server/sql/migrations/005_player_match_availability_window.sql;
 ```
 
-Esta migración agrega la tabla de partidos sin borrar datos existentes.
+Las migraciones agregan las tablas y campos necesarios sin borrar datos existentes. Ejecutá cada migración pendiente una sola vez.
 
 ## Variables de entorno
 
