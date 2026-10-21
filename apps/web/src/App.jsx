@@ -411,7 +411,7 @@ function App() {
   const [advancedFilterType, setAdvancedFilterType] = useState('Partidos');
   const [appliedCourtFilters, setAppliedCourtFilters] = useState({
     opening: '',
-    date: '',
+    date: toLocalDateInputValue(new Date()),
     from: '18:00',
     to: '22:00',
   });
@@ -1419,7 +1419,7 @@ const crearPack = async () => {
                       ))}
                     </div>
                   </div>
-                  <div className={`filter-fields ${advancedFilterType === 'Partidos' ? 'match-filter-fields' : ''}`}>
+                  <div className={`filter-fields ${advancedFilterType === 'Partidos' ? 'match-filter-fields' : advancedFilterType === 'Canchas' ? 'court-filter-fields' : ''}`}>
                     {advancedFilterType === 'Partidos' ? (
                       <>
                         <label className="field-sm">Género
@@ -1430,7 +1430,19 @@ const crearPack = async () => {
                           </select>
                         </label>
                         <label className="field-date">Fecha
-                          <input type="date" lang="es-AR" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha del partido" />
+                          <span className="filter-date-control">
+                            <span className="filter-date-value">{draftCourtFilters.date ? formatFilterDate(draftCourtFilters.date) : 'dd/mm/aaaa'}</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2" /><path d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17" /></svg>
+                            <input
+                              className="filter-date-native-input"
+                              type="date"
+                              lang="es-AR"
+                              value={draftCourtFilters.date}
+                              onChange={(event) => updateCourtFilter('date', event.target.value)}
+                              onInput={(event) => updateCourtFilter('date', event.target.value)}
+                              aria-label="Fecha del partido"
+                            />
+                          </span>
                         </label>
                         <label className="field-time">Desde
                           <input type="time" value={draftCourtFilters.from} onChange={(event) => updateCourtFilter('from', event.target.value)} aria-label="Hora inicial del partido" />
@@ -1464,34 +1476,22 @@ const crearPack = async () => {
                           </div>
                           <small className="filter-hint">Sin selección: se incluyen todos los clubes.</small>
                         </div>
-                        <label>Estado de la cancha
+                        <label className="court-type-field">Tipo
                           <select value={draftCourtFilters.opening} onChange={(event) => updateCourtFilter('opening', event.target.value)} aria-label="Apertura">
                             <option value="">Cualquiera</option>
                             <option value="abierta">Abierta</option>
                             <option value="semi-cerrada">Semi-cerrada</option>
                             <option value="cerrada">Cerrada</option>
                           </select>
-                          <small className="filter-hint">Se construye con opiniones de usuarios.</small>
                         </label>
-                        <label>Fecha
+                        <label className="court-date-field">Fecha
                           <input type="date" value={draftCourtFilters.date} onChange={(event) => updateCourtFilter('date', event.target.value)} aria-label="Fecha de disponibilidad" />
                         </label>
-                        <label>Desde
+                        <label className="court-time-field">Desde
                           <input type="time" value={draftCourtFilters.from} onChange={(event) => updateCourtFilter('from', event.target.value)} aria-label="Hora inicial" />
                         </label>
-                        <label>Hasta
+                        <label className="court-time-field">Hasta
                           <input type="time" value={draftCourtFilters.to} onChange={(event) => updateCourtFilter('to', event.target.value)} aria-label="Hora final" />
-                        </label>
-                        <label>Valoración de jugadores
-                          <select defaultValue="">
-                            <option value="">Cualquier valoración</option>
-                            <option value="1">1 estrella o más</option>
-                            <option value="2">2 estrellas o más</option>
-                            <option value="3">3 estrellas o más</option>
-                            <option value="4">4 estrellas o más</option>
-                            <option value="5">5 estrellas</option>
-                          </select>
-                          <small className="filter-hint">Basada en opiniones de jugadores.</small>
                         </label>
                       </>
                     ) : null}
