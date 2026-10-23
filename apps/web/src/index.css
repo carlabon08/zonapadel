@@ -1498,6 +1498,77 @@ h3 {
   margin-bottom: 20px;
 }
 
+.club-dashboard-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.club-dashboard-panel > * {
+  min-width: 0;
+}
+
+.club-dashboard-summary h2 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.club-dashboard-panel .summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.plan-chip {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.club-dashboard-panel .summary-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.club-dashboard-panel .summary-card span {
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.club-dashboard-panel .summary-card strong {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.club-calendar-section {
+  padding-top: 16px;
+  border-top: 1px solid rgba(138, 95, 70, 0.16);
+}
+
+.club-calendar-section .section-header {
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.club-calendar-section .section-header h3 {
+  flex: 1 1 100%;
+  font-size: 0.92rem;
+}
+
 .summary-card {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(148,163,184,0.14);
@@ -1522,26 +1593,143 @@ h3 {
   gap: 12px;
 }
 
+.court-timetable {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.court-pager {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+}
+
+.court-pager-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  color: var(--ink);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.court-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.court-pager-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.court-pager-title strong {
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.court-pager-title small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.court-pager-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.court-pager-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--club-border, rgba(138, 95, 70, 0.3));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.court-pager-tab.active {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  border-color: transparent;
+  font-weight: 700;
+}
+
+.timetable {
+  display: grid;
+  gap: 4px;
+}
+
+.timetable-day {
+  display: grid;
+  gap: 4px;
+}
+
+.timetable-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--club-border, rgba(138, 95, 70, 0.2));
+}
+
+.timetable-time {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.timetable-row .day-pill {
+  justify-self: start;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+}
+
 .court-calendar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
   gap: 14px;
 }
 
 .court-calendar-card {
   background: rgba(15, 23, 42, 0.82);
   border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 18px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 11px;
   display: grid;
-  gap: 12px;
+  gap: 9px;
 }
 
 .court-calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+}
+
+.court-calendar-header strong {
+  font-size: 0.86rem;
+}
+
+.court-calendar-card .status-pill {
+  margin-top: 0;
+  padding: 4px 8px;
+  font-size: 0.66rem;
 }
 
 .court-calendar-card p {
@@ -2413,6 +2601,82 @@ h3 {
   height: 34px;
 }
 
+.dashboard-shell.role-club {
+  --club-tint: color-mix(in srgb, var(--theme-primary) 14%, #fffdf9);
+  --club-tint-strong: color-mix(in srgb, var(--theme-primary) 26%, #fffdf9);
+  --club-border: color-mix(in srgb, var(--theme-primary) 38%, transparent);
+}
+
+.dashboard-shell.role-club .summary-card,
+.dashboard-shell.role-club .court-calendar-card,
+.dashboard-shell.role-club .booking-row,
+.dashboard-shell.role-club .club-court-card,
+.dashboard-shell.role-club .mini-status-item {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+  border-color: transparent;
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .summary-card span,
+.dashboard-shell.role-club .court-calendar-card p,
+.dashboard-shell.role-club .club-court-card p,
+.dashboard-shell.role-club .booking-row p,
+.dashboard-shell.role-club .club-profile p,
+.dashboard-shell.role-club .club-profile small,
+.dashboard-shell.role-club .opening-hours-field {
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .summary-card strong,
+.dashboard-shell.role-club .court-calendar-card strong,
+.dashboard-shell.role-club .club-court-card strong,
+.dashboard-shell.role-club .club-court-head strong,
+.dashboard-shell.role-club .booking-row strong,
+.dashboard-shell.role-club .booking-price,
+.dashboard-shell.role-club .club-profile strong,
+.dashboard-shell.role-club .calendar-day-label {
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .opening-hours-field input {
+  background: #fffdf9;
+  border-color: var(--club-border);
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .status-btn {
+  background: transparent;
+  border-color: var(--club-border);
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .status-btn.active {
+  background: var(--theme-primary);
+  border-color: var(--theme-primary);
+  color: #fff;
+}
+
+.dashboard-shell.role-club .status-pill,
+.dashboard-shell.role-club .booking-status {
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .day-pill {
+  background: var(--club-tint-strong);
+  border-color: var(--club-border);
+  color: var(--ink);
+}
+
+.dashboard-shell.role-club .day-pill.mantenimiento {
+  background: rgba(245, 158, 11, 0.22);
+  color: #5c3b00;
+}
+
+.dashboard-shell.role-club .club-logo,
+.dashboard-shell.role-club .club-profile .club-logo {
+  color: #fff;
+}
+
 .desktop-only {
   display: block;
 }
@@ -2449,6 +2713,65 @@ h3 {
 }
 
 @media (max-width: 720px) {
+  .dashboard-shell.role-club .content-area,
+  .dashboard-shell.role-club .tab-content,
+  .dashboard-shell.role-club .panel {
+    min-width: 0;
+  }
+
+  .dashboard-shell.role-club .section-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .dashboard-shell.role-club .section-header > h3 {
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-shell.role-club .section-header > label {
+    flex: 1 1 110px;
+    min-width: 0;
+  }
+
+  .dashboard-shell.role-club .section-header > label input,
+  .dashboard-shell.role-club .section-header > label select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dashboard-shell.role-club .club-dashboard-panel .summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-shell.role-club .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-shell.role-club .court-rate-grid,
+  .dashboard-shell.role-club .maintenance-fields {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  }
+
+  .dashboard-shell.role-club .booking-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-shell.role-club .booking-row > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-shell.role-club .club-court-head {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-shell.role-club .club-court-head > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .court-filter-fields {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

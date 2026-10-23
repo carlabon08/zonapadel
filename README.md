@@ -123,7 +123,7 @@ sequenceDiagram
 	API-->>A: Muestra calendario y reservas
 ```
 
-El rol `club` administra las canchas y visualiza las reservas de su entidad. Los cambios quedan guardados en MySQL y luego pueden ser consultados por jugadores y entrenadores mediante la API.
+El rol `club` se registra asociado al club que administra. Al iniciar sesión, accede al panel y al perfil de administrador de esa entidad, además de administrar las canchas y visualizar sus reservas. Los cambios quedan guardados en MySQL y luego pueden ser consultados por jugadores y entrenadores mediante la API. En bases existentes, ejecutar `apps/server/sql/migrations/006_club_admin_club_id.sql` para guardar el identificador del club.
 
 ### Flujo de la persona organizadora de torneos
 

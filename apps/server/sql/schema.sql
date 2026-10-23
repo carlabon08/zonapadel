@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email VARCHAR(160) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   rol ENUM('jugador', 'club', 'entrenador', 'torneos') NOT NULL,
-  club_id INT NULL, -- solo aplica a rol 'club'
+  club_id VARCHAR(60) NULL, -- solo aplica a rol 'club'
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

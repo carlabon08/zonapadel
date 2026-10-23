@@ -1,0 +1,2 @@
+ALTER TABLE usuarios
+  MODIFY club_id VARCHAR(60) NULL;

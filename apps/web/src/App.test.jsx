@@ -92,6 +92,83 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Crear cuenta' })).toBeInTheDocument();
   });
 
+  it('registers and opens the club administrator profile for the selected club', async () => {
+    const fetchMock = vi.fn((url) => Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => (url === '/api/auth/registro'
+        ? {
+            token: 'club-admin-token',
+            user: {
+              id: 12,
+              nombre: 'Admin Norte',
+              email: 'admin@norte.example',
+              rol: 'club',
+              club_id: 'club-padel-norte',
+            },
+          }
+        : []),
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Crear una cuenta' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Admin Norte' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@norte.example' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Pass123!' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Ingresar como' }), { target: { value: 'club' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Club a administrar' }), { target: { value: 'club-padel-norte' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/auth/registro', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        nombre: 'Admin Norte',
+        email: 'admin@norte.example',
+        password: 'Pass123!',
+        rol: 'club',
+        club_id: 'club-padel-norte',
+      }),
+    })));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Perfil' })[0]);
+
+    expect(screen.getByRole('heading', { name: 'Administrador del club' })).toBeInTheDocument();
+    expect(screen.getByText('Admin Norte')).toBeInTheDocument();
+    expect(screen.getByText('admin@norte.example · Club del Padel Norte')).toBeInTheDocument();
+  });
+
+  it('logs a club administrator into the profile for the associated club', async () => {
+    const fetchMock = vi.fn((url) => Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => (url === '/api/auth/login'
+        ? {
+            token: 'club-admin-token',
+            user: {
+              id: 12,
+              nombre: 'Admin Arena',
+              email: 'admin@arena.example',
+              rol: 'club',
+              club_id: 'padel-arena',
+            },
+          }
+        : []),
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@arena.example' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'Pass123!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/auth/login', expect.anything()));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Perfil' })[0]);
+
+    expect(screen.getByRole('heading', { name: 'Administrador del club' })).toBeInTheDocument();
+    expect(screen.getByText('Admin Arena')).toBeInTheDocument();
+    expect(screen.getByText('admin@arena.example · Padel Arena')).toBeInTheDocument();
+  });
+
   it('toggles password visibility on the authentication form', () => {
     render(<App />);
 
@@ -595,6 +672,18 @@ describe('App', () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Estado del calendario' }), { target: { value: 'Reservada' } });
     expect(screen.getByText('No hay reservas de MySQL para esta fecha y estado.')).toBeInTheDocument();
+  });
+
+  it('shows the club summary and court calendar in one compact panel without a cobrar action', () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Soy club/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Club del Padel Norte/ }));
+
+    expect(screen.getByRole('heading', { name: 'Resumen de la jornada' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Calendario por cancha · Club del Padel Norte' })).toBeInTheDocument();
+    expect(document.querySelectorAll('.club-dashboard-panel')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Cobrar' })).not.toBeInTheDocument();
   });
 
   it('allows the club to edit the individual court price', () => {

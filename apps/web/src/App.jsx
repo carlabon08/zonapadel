@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const navItems = ['Inicio', 'Entrenamiento', 'Torneos', 'Packs', 'Perfil'];
 const clubNavItems = ['Inicio', 'Canchas', 'Reservas', 'Packs', 'Perfil'];
@@ -356,7 +356,9 @@ function App() {
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
+  const [authSurname, setAuthSurname] = useState('');
   const [authRole, setAuthRole] = useState('jugador');
+  const [authClubId, setAuthClubId] = useState('');
   const [authMode, setAuthMode] = useState('login');
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -439,9 +441,11 @@ function App() {
   const [tournamentEventsList, setTournamentEventsList] = useState(tournamentEvents);
   const [calendarStatusFilter, setCalendarStatusFilter] = useState('Todos');
   const [calendarView, setCalendarView] = useState('Día');
-  const [calendarDate, setCalendarDate] = useState('2026-09-04');
+  const [calendarCourtIndex, setCalendarCourtIndex] = useState(0);
+  const calendarTouchStartX = useRef(0);
+  const [calendarDate, setCalendarDate] = useState(() => toLocalDateInputValue(new Date()));
   const [calendarSchedule, setCalendarSchedule] = useState(clubCourtSchedule);
-  const [maintenanceDraft, setMaintenanceDraft] = useState({ courtId: '4', date: '2026-09-04', from: '14:00', to: '16:00' });
+  const [maintenanceDraft, setMaintenanceDraft] = useState({ courtId: '4', date: toLocalDateInputValue(new Date()), from: '14:00', to: '16:00' });
   const [apiReservations, setApiReservations] = useState([]);
   const [isClubEditing, setIsClubEditing] = useState(false);
   const [clubProfileDraft, setClubProfileDraft] = useState({ name: '', city: '', address: '', phone: '' });
@@ -556,6 +560,34 @@ useEffect(() => {
     .filter((court) => calendarView === 'Semana'
       ? Object.values(court.week).some((slots) => slots.length > 0)
       : court.week[selectedCalendarDay]?.length > 0);
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const todayIso = toLocalDateInputValue(new Date());
+  const todayCalendarDay = calendarDayLabels[new Date().getDay()];
+  const toMinutes = (value) => {
+    const [hours, minutes] = String(value).split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  };
+  const isOccupiedNow = (court) => {
+    if (useRealCalendarData) {
+      return apiReservations.some((reservation) => {
+        if (Number(reservation.cancha_id) !== court.id || reservation.estado === 'Cancelada') return false;
+        if (String(reservation.fecha).slice(0, 10) !== todayIso) return false;
+        const start = toMinutes(reservation.hora);
+        return nowMinutes >= start && nowMinutes < start + 90;
+      });
+    }
+    return (court.week[todayCalendarDay] || []).some((slot) => {
+      if (['Disponible', 'Cancelada'].includes(slot.status)) return false;
+      const [from, to] = String(slot.time).split(' - ');
+      const start = toMinutes(from);
+      return nowMinutes >= start && nowMinutes < (to ? toMinutes(to) : start + 90);
+    });
+  };
+  const reservationsForSelectedDate = apiReservations.filter((reservation) =>
+    String(reservation.fecha).slice(0, 10) === calendarDate
+  );
+  const confirmedReservationsForSelectedDate = reservationsForSelectedDate.filter((reservation) => reservation.estado === 'Confirmada').length;
+  const pendingReservationsForSelectedDate = reservationsForSelectedDate.filter((reservation) => reservation.estado === 'Pendiente').length;
   const nearbyPoolPlayers = visiblePlayers.filter((player) => player.distanceKm <= 10);
 
   const addMaintenanceBlock = () => {
@@ -1096,7 +1128,13 @@ const crearPack = async () => {
       const response = await fetch('/api/auth/registro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: authName, email: authEmail, password: authPassword, rol: authRole }),
+        body: JSON.stringify({
+          nombre: authName,
+          email: authEmail,
+          password: authPassword,
+          rol: authRole,
+          club_id: authRole === 'club' ? authClubId : null,
+        }),
       });
       const data = await response.json();
 
@@ -1108,6 +1146,7 @@ const crearPack = async () => {
       localStorage.setItem('zonapadel_token', data.token);
       setAuthenticatedUser({ ...data.user, token: data.token });
       setSelectedRole(data.user.rol);
+      setSelectedClubId(data.user.club_id || null);
       setAuthMode('login');
       if (data.user.rol !== 'club') setActiveTab('Inicio');
     } catch (error) {
@@ -2879,6 +2918,21 @@ const crearPack = async () => {
       case 'Perfil':
         return (
           <div className="tab-content">
+            {authenticatedUser ? (
+              <section className="panel">
+                <div className="section-header">
+                  <h3>Administrador del club</h3>
+                </div>
+                <div className="club-profile">
+                  <div className="club-logo">AD</div>
+                  <div>
+                    <strong>{authenticatedUser.nombre}</strong>
+                    <p>Administrador del club</p>
+                    <small>{authenticatedUser.email} · {selectedClub.name}</small>
+                  </div>
+                </div>
+              </section>
+            ) : null}
             <section className="panel">
               <div className="section-header">
                 <h3>Club</h3>
@@ -2923,96 +2977,119 @@ const crearPack = async () => {
       default:
         return (
           <div className="tab-content">
-            <section className="hero-banner club-banner">
-              <div>
-                <p className="eyebrow light">Club manager</p>
+            <section className="panel club-dashboard-panel">
+              <div className="club-dashboard-summary">
                 <h2>Resumen de la jornada</h2>
-                <p>Vigila turnos, confirmaciones y estado de las canchas desde tu móvil.</p>
+                <div className="summary-grid">
+                  <div className="summary-card">
+                    <span>Turnos hoy</span>
+                    <strong>18</strong>
+                  </div>
+                  <div className="summary-card">
+                    <span>Confirmadas</span>
+                    <strong>12</strong>
+                  </div>
+                  <div className="summary-card">
+                    <span>Disponibles</span>
+                    <strong>3</strong>
+                  </div>
+                </div>
               </div>
-              <button type="button" className="primary-btn">Cobrar</button>
-            </section>
 
-            <div className="summary-grid">
-              <div className="summary-card">
-                <span>Turnos hoy</span>
-                <strong>18</strong>
-              </div>
-              <div className="summary-card">
-                <span>Confirmadas</span>
-                <strong>12</strong>
-              </div>
-              <div className="summary-card">
-                <span>Disponibles</span>
-                <strong>3</strong>
-              </div>
-              <div className="summary-card">
-                <span>Plan</span>
-                <strong>Mensual</strong>
-              </div>
-            </div>
-
-            <section className="panel">
-              <div className="section-header">
-                <h3>Calendario por cancha · {selectedClub.name}</h3>
-                <label className="calendar-status-filter">
-                  <span>Vista</span>
-                  <select value={calendarView} onChange={(event) => setCalendarView(event.target.value)} aria-label="Vista del calendario">
-                    <option value="Día">Día</option>
-                    <option value="Semana">Semana</option>
-                  </select>
-                </label>
-                {calendarView === 'Día' ? (
+              <div className="club-calendar-section">
+                <div className="section-header">
+                  <h3>Calendario por cancha · {selectedClub.name}</h3>
                   <label className="calendar-status-filter">
-                    <span>Fecha</span>
-                    <input type="date" value={calendarDate} onChange={(event) => setCalendarDate(event.target.value)} aria-label="Fecha del calendario" />
+                    <span>Vista</span>
+                    <select value={calendarView} onChange={(event) => setCalendarView(event.target.value)} aria-label="Vista del calendario">
+                      <option value="Día">Día</option>
+                      <option value="Semana">Semana</option>
+                    </select>
                   </label>
-                ) : null}
-                <label className="calendar-status-filter">
-                  <span>Ver</span>
-                  <select value={calendarStatusFilter} onChange={(event) => setCalendarStatusFilter(event.target.value)} aria-label="Estado del calendario">
-                    <option value="Todos">Todos los estados</option>
-                    <option value="Disponible">Disponibles</option>
-                    <option value="Reservada">Reservadas</option>
-                    <option value="Cumplida">Cumplidas</option>
-                    <option value="Cancelada">Canceladas</option>
-                    <option value="Mantenimiento">Mantenimiento</option>
-                    <option value="Torneo">Torneos</option>
-                    <option value="Clase">Clases</option>
-                  </select>
-                </label>
-              </div>
+                  {calendarView === 'Día' ? (
+                    <label className="calendar-status-filter">
+                      <span>Fecha</span>
+                      <input type="date" value={calendarDate} onChange={(event) => setCalendarDate(event.target.value)} aria-label="Fecha del calendario" />
+                    </label>
+                  ) : null}
+                  <label className="calendar-status-filter">
+                    <span>Ver</span>
+                    <select value={calendarStatusFilter} onChange={(event) => setCalendarStatusFilter(event.target.value)} aria-label="Estado del calendario">
+                      <option value="Todos">Todos los estados</option>
+                      <option value="Disponible">Disponibles</option>
+                      <option value="Reservada">Reservadas</option>
+                      <option value="Cumplida">Cumplidas</option>
+                      <option value="Cancelada">Canceladas</option>
+                      <option value="Mantenimiento">Mantenimiento</option>
+                      <option value="Torneo">Torneos</option>
+                      <option value="Clase">Clases</option>
+                    </select>
+                  </label>
+                </div>
 
-              <div className="court-calendar-grid">
-                {calendarCourtsByBlockStatus.map((court) => (
-                  <div key={court.id} className="court-calendar-card">
-                    <div className="court-calendar-header">
-                      <strong>{court.name}</strong>
-                      <span className={`status-pill ${court.status.toLowerCase().replace(/\s+/g, '-')}`}>{court.status}</span>
-                    </div>
-                    <div className="calendar-days">
-                      {Object.entries(court.week)
-                        .filter(([day]) => calendarView === 'Semana' || day === selectedCalendarDay)
-                        .map(([day, slots]) => (
-                          <div key={`${court.id}-${day}`} className="calendar-day-column">
-                            <span className="calendar-day-label">{day}</span>
-                            {slots.map((slot) => (
-                              <div
-                                key={`${court.id}-${day}-${slot.time}`}
-                                className={`day-pill ${slot.status.toLowerCase().replace(/\s+/g, '-')}`}
-                              >
-                                <small>{slot.time}</small>
-                                <span>{slot.status}</span>
+                {calendarCourtsByBlockStatus.length > 0 ? (() => {
+                  const courtCount = calendarCourtsByBlockStatus.length;
+                  const courtIndex = Math.min(calendarCourtIndex, courtCount - 1);
+                  const court = calendarCourtsByBlockStatus[courtIndex];
+                  const moveCourt = (step) => setCalendarCourtIndex((courtIndex + step + courtCount) % courtCount);
+                  const timetableDays = Object.entries(court.week)
+                    .filter(([day, slots]) => slots.length > 0 && (calendarView === 'Semana' || day === selectedCalendarDay))
+                    .map(([day, slots]) => [day, [...slots].sort((a, b) => String(a.time).localeCompare(String(b.time)))]);
+
+                  return (
+                    <div
+                      className="court-timetable"
+                      onTouchStart={(event) => { calendarTouchStartX.current = event.touches[0].clientX; }}
+                      onTouchEnd={(event) => {
+                        const delta = event.changedTouches[0].clientX - calendarTouchStartX.current;
+                        if (Math.abs(delta) > 50) moveCourt(delta < 0 ? 1 : -1);
+                      }}
+                    >
+                      <div className="court-pager">
+                        <button type="button" className="court-pager-btn" onClick={() => moveCourt(-1)} aria-label="Cancha anterior" disabled={courtCount < 2}>‹</button>
+                        <div className="court-pager-title">
+                          <strong>{court.name}</strong>
+                          <span className={`status-pill ${isOccupiedNow(court) ? 'reservada' : 'disponible'}`}>{isOccupiedNow(court) ? 'Ocupada ahora' : 'Libre ahora'}</span>
+                          <small>{courtIndex + 1}/{courtCount}</small>
+                        </div>
+                        <button type="button" className="court-pager-btn" onClick={() => moveCourt(1)} aria-label="Cancha siguiente" disabled={courtCount < 2}>›</button>
+                      </div>
+                      <div className="court-pager-tabs" role="tablist" aria-label="Canchas">
+                        {calendarCourtsByBlockStatus.map((item, index) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={index === courtIndex}
+                            className={`court-pager-tab ${index === courtIndex ? 'active' : ''}`}
+                            onClick={() => setCalendarCourtIndex(index)}
+                          >
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="timetable">
+                        {timetableDays.length === 0 ? (
+                          <p className="empty-state">Sin turnos para esta cancha.</p>
+                        ) : timetableDays.map(([day, slots]) => (
+                          <div key={`${court.id}-${day}`} className="timetable-day">
+                            {calendarView === 'Semana' ? <span className="calendar-day-label">{day}</span> : null}
+                            {slots.map((slot, slotIndex) => (
+                              <div key={`${court.id}-${day}-${slot.time}-${slotIndex}`} className="timetable-row">
+                                <span className="timetable-time">{slot.time}</span>
+                                <span className={`day-pill ${slot.status.toLowerCase().replace(/\s+/g, '-')}`}>{slot.status}</span>
                               </div>
                             ))}
                           </div>
                         ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })() : null}
+                {useRealCalendarData && (!authenticatedUser || apiReservationsLoaded) && calendarCourtsByBlockStatus.length === 0 ? (
+                  <p className="empty-state">No hay reservas de MySQL para esta fecha y estado.</p>
+                ) : null}
               </div>
-              {useRealCalendarData && (!authenticatedUser || apiReservationsLoaded) && calendarCourtsByBlockStatus.length === 0 ? (
-                <p className="empty-state">No hay reservas de MySQL para esta fecha y estado.</p>
-              ) : null}
             </section>
           </div>
         );
@@ -3024,7 +3101,7 @@ const crearPack = async () => {
     const isTrainerClubSelector = selectedRole === 'entrenador' && !isTrainerClubSetupComplete;
 
     return (
-      <div className={`auth-screen theme-${selectedTheme} ${isClubSelector || isTrainerClubSelector ? 'role-green' : ''}`}>
+      <div className={`auth-screen theme-${selectedTheme} ${isTrainerClubSelector ? 'role-green' : ''}`}>
         <div className="auth-card">
           <div className="brand-wrap">
             <span className="brand-badge">ZP</span>
@@ -3088,6 +3165,14 @@ const crearPack = async () => {
                     <option value="club">Club</option>
                     <option value="entrenador">Entrenador</option>
                     <option value="torneos">Organizador de torneos</option>
+                  </select>
+                </label>
+              ) : null}
+              {authMode === 'register' && authRole === 'club' ? (
+                <label>Club a administrar
+                  <select value={authClubId} onChange={(event) => setAuthClubId(event.target.value)} required>
+                    <option value="">Seleccioná tu club</option>
+                    {clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}
                   </select>
                 </label>
               ) : null}
@@ -3245,7 +3330,7 @@ const crearPack = async () => {
   };
 
   return (
-    <div className={`dashboard-shell theme-${selectedTheme} ${selectedRole && ['club', 'entrenador', 'torneos'].includes(selectedRole) ? 'role-green' : ''}`}>
+    <div className={`dashboard-shell theme-${selectedTheme} ${selectedRole && ['entrenador', 'torneos'].includes(selectedRole) ? 'role-green' : ''} ${selectedRole === 'club' ? 'role-club' : ''}`}>
       <aside className="sidebar desktop-only">
         <div className="brand">
           <span className="brand-badge">ZP</span>
@@ -3291,6 +3376,7 @@ const crearPack = async () => {
               {selectedRole === 'jugador' && authenticatedUser?.nombre
                 ? `Bienvenido, ${authenticatedUser.nombre}`
                 : 'Bienvenido'}
+              {selectedRole === 'club' ? <span className="plan-chip">Plan Mensual</span> : null}
             </p>
             {getTopbarTitle() ? <h1>{getTopbarTitle()}</h1> : null}
           </div>
